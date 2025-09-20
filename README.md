@@ -114,5 +114,8 @@ print("Uncertainty:", std)
 Pull requests and ideas are welcome!
 Whether it’s new methods, bug fixes, or docs improvements — let’s make UQ accessible everywhere.
 
-## License
-Apache 2.0 License. Use freely in research and production.
+## 📜 License
+Licensed under the **Apache License 2.0**.  
+You may use, modify, and distribute this library in research and production under the terms of the license.  
+See the [LICENSE](LICENSE) file for details.
+
