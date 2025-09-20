@@ -11,9 +11,10 @@ class UQ:
     
     Parameters
     ----------
-    model : object or callable
-        - For sklearn-style models: pass the model instance.
+    model : object or callable, optional
+        - For sklearn-style models: pass the model instance (Bootstrap, Conformal).
         - For deep learning ensembles: pass a model constructor (e.g., lambda: Net()).
+        - Not required for Bayesian Linear Regression.
     method : str
         Uncertainty method. Options: 
         ["bootstrap", "conformal", "mc_dropout", "deep_ensemble", "bayesian_linear"].
@@ -21,22 +22,36 @@ class UQ:
         Additional arguments passed to the chosen method.
     """
 
-    def __init__(self, model, method="bootstrap", **kwargs):
+    def __init__(self, model=None, method="bootstrap", **kwargs):
         self.model = model
         self.method = method.lower()
         self.uq_model = self._init_method(**kwargs)
 
     def _init_method(self, **kwargs):
         if self.method == "bootstrap":
+            if self.model is None:
+                raise ValueError("Bootstrap requires a model instance.")
             return BootstrapUQ(self.model, **kwargs)
+
         elif self.method == "conformal":
+            if self.model is None:
+                raise ValueError("Conformal requires a model instance.")
             return ConformalUQ(self.model, **kwargs)
+
         elif self.method == "mc_dropout":
+            if self.model is None:
+                raise ValueError("MC Dropout requires a model constructor (e.g., lambda: Net()).")
             return MCDropoutUQ(self.model, **kwargs)
+
         elif self.method == "deep_ensemble":
+            if self.model is None:
+                raise ValueError("Deep Ensemble requires a model constructor (e.g., lambda: Net()).")
             return DeepEnsembleUQ(self.model, **kwargs)
+
         elif self.method == "bayesian_linear":
+            # Bayesian Linear Regression doesn’t use self.model
             return BayesianLinearUQ(**kwargs)
+
         else:
             raise ValueError(f"Unknown UQ method: {self.method}")
 
