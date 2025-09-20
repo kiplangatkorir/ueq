@@ -13,15 +13,15 @@ class BootstrapUQ:
     ----------
     model : object
         Any scikit-learn compatible estimator.
-    n_samples : int, default=100
+    n_models : int, default=100
         Number of bootstrap models to train.
     random_state : int, optional
         Random seed for reproducibility.
     """
 
-    def __init__(self, model, n_samples=100, random_state=None):
+    def __init__(self, model, n_models=100, random_state=None):
         self.base_model = model
-        self.n_samples = n_samples
+        self.n_models = n_models
         self.random_state = random_state
         self.models = []
         self.is_fitted = False
@@ -32,7 +32,7 @@ class BootstrapUQ:
         n = len(X)
 
         self.models = []
-        for _ in range(self.n_samples):
+        for _ in range(self.n_models):
             idx = rng.choice(n, size=n, replace=True)
             m = clone(self.base_model)
             m.fit(X[idx], y[idx])
