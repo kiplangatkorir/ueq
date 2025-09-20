@@ -1,6 +1,8 @@
 from .methods.bootstrap import BootstrapUQ
 from .methods.conformal import ConformalUQ
 from .methods.mc_dropout import MCDropoutUQ
+from .methods.deep_ensemble import DeepEnsembleUQ
+from .methods.bayesian_linear import BayesianLinearUQ
 
 
 class UQ:
@@ -9,10 +11,12 @@ class UQ:
     
     Parameters
     ----------
-    model : object
-        Base model (e.g., scikit-learn estimator, PyTorch model).
+    model : object or callable
+        - For sklearn-style models: pass the model instance.
+        - For deep learning ensembles: pass a model constructor (e.g., lambda: Net()).
     method : str
-        Uncertainty method. Options: ["bootstrap", "conformal", "mc_dropout"].
+        Uncertainty method. Options: 
+        ["bootstrap", "conformal", "mc_dropout", "deep_ensemble", "bayesian_linear"].
     **kwargs :
         Additional arguments passed to the chosen method.
     """
@@ -29,6 +33,10 @@ class UQ:
             return ConformalUQ(self.model, **kwargs)
         elif self.method == "mc_dropout":
             return MCDropoutUQ(self.model, **kwargs)
+        elif self.method == "deep_ensemble":
+            return DeepEnsembleUQ(self.model, **kwargs)
+        elif self.method == "bayesian_linear":
+            return BayesianLinearUQ(**kwargs)
         else:
             raise ValueError(f"Unknown UQ method: {self.method}")
 
@@ -48,7 +56,7 @@ class UQ:
             raise NotImplementedError(f"{self.method} does not support predict_dist().")
 
     def calibrate(self, *args, **kwargs):
-        """Optional calibration step."""
+        """Optional calibration step (for conformal methods, etc.)."""
         if hasattr(self.uq_model, "calibrate"):
             return self.uq_model.calibrate(*args, **kwargs)
         else:
