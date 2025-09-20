@@ -31,8 +31,8 @@ Easily wrap your machine learning models and get predictions **with confidence i
 ##  Installation
 
 ```bash
-git clone https://github.com/yourusername/uncertainty-everywhere.git
-cd uncertainty-everywhere
+git clone https://github.com/kiplangatkorir/ueq/.git
+cd ueq
 pip install -e .
 ```
 
