@@ -7,22 +7,29 @@ from ueq.methods.bootstrap import BootstrapUQ
 def test_bootstrap_predict_shapes():
     X, y = make_regression(n_samples=100, n_features=5, noise=0.1, random_state=42)
     model = LinearRegression()
-    uq = BootstrapUQ(model, n_models=5)
-
+    # Changed from n_models=5 to n_samples=5
+    uq = BootstrapUQ(model, n_samples=5)
     uq.fit(X, y)
-    preds, intervals = uq.predict(X[:10])
-
-    assert preds.shape[0] == 10
-    assert len(intervals) == 10
-    assert all(len(iv) == 2 for iv in intervals)
+    
+    X_test = np.random.randn(10, 5)
+    pred, intervals = uq.predict(X_test)
+    
+    # Convert intervals from list of tuples to numpy array for shape checking
+    intervals = np.array(intervals)
+    assert pred.shape == (10,)
+    assert intervals.shape == (10, 2)
 
 
 def test_bootstrap_interval_contains_mean():
     X, y = make_regression(n_samples=100, n_features=2, noise=5, random_state=42)
     model = LinearRegression()
-    uq = BootstrapUQ(model, n_models=5)
+    # Changed from n_models=5 to n_samples=5
+    uq = BootstrapUQ(model, n_samples=5)
     uq.fit(X, y)
-    preds, intervals = uq.predict(X[:5])
-
-    for p, (low, high) in zip(preds, intervals):
-        assert low <= p <= high
+    
+    X_test = np.random.randn(10, 2)
+    pred, intervals = uq.predict(X_test)
+    intervals = np.array(intervals)
+    
+    assert np.all(intervals[:, 0] <= pred)
+    assert np.all(intervals[:, 1] >= pred)
