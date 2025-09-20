@@ -1,117 +1,85 @@
 import numpy as np
-
+from typing import Tuple, List, Optional
+from scipy.stats import norm
 
 class BayesianLinearUQ:
-    """
-    Bayesian Linear Regression for Uncertainty Quantification.
+    """Bayesian Linear Regression with uncertainty quantification."""
     
-    Uses a Gaussian prior on weights and conjugate Gaussian likelihood, 
-    giving a closed-form posterior and predictive distribution.
-
-    Model:
-        y = Xw + ε
-        w ~ N(0, α⁻¹ I)
-        ε ~ N(0, β⁻¹)
-
-    Parameters
-    ----------
-    alpha : float, default=1.0
-        Precision of the prior (1 / variance).
-    beta : float, default=1.0
-        Precision of the noise (1 / variance).
-    """
-
-    def __init__(self, alpha=1.0, beta=1.0):
+    def __init__(self, alpha: float = 1.0, beta: float = 1.0):
+        """
+        Initialize Bayesian Linear Regression.
+        
+        Args:
+            alpha: Precision of the prior distribution
+            beta: Precision of the noise distribution
+        """
         self.alpha = alpha
         self.beta = beta
-        self.m_N = None   # posterior mean
-        self.S_N = None   # posterior covariance
+        self.mean = None
+        self.cov = None
         self.is_fitted = False
 
-    def fit(self, X, y):
-        """
-        Fit Bayesian linear regression.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-        y : ndarray of shape (n_samples,)
-        """
-        X = np.asarray(X)
-        y = np.asarray(y).reshape(-1, 1)
-        n, d = X.shape
-
-        # Prior precision matrix
-        A = self.alpha * np.eye(d) + self.beta * (X.T @ X)
-
-        # Posterior covariance
-        self.S_N = np.linalg.inv(A)
-
-        # Posterior mean
-        self.m_N = self.beta * self.S_N @ X.T @ y
-
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "BayesianLinearUQ":
+        """Fit Bayesian Linear Regression."""
+        # Add bias term
+        X = np.c_[np.ones(X.shape[0]), X]
+        
+        # Posterior distribution parameters
+        S_N_inv = self.alpha * np.eye(X.shape[1]) + self.beta * X.T @ X
+        S_N = np.linalg.inv(S_N_inv)
+        m_N = self.beta * S_N @ X.T @ y
+        
+        self.mean = m_N
+        self.cov = S_N
         self.is_fitted = True
         return self
 
-    def predict(self, X, return_interval=True, alpha=0.05):
-        """
-        Predict with posterior predictive uncertainty.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-        return_interval : bool, default=True
-            Whether to return prediction intervals.
-        alpha : float, default=0.05
-            Confidence level (0.05 = 95% CI).
-
-        Returns
-        -------
-        mean : ndarray
-            Predictive mean.
-        intervals : list of tuples
-            Confidence intervals for each prediction (if return_interval=True).
-        """
+    def predict(
+        self, 
+        X: np.ndarray, 
+        return_interval: bool = True,
+        alpha: float = 0.05
+    ) -> Tuple[np.ndarray, List[Tuple[float, float]]]:
+        """Predict with uncertainty intervals."""
         if not self.is_fitted:
-            raise RuntimeError("BayesianLinearUQ is not fitted yet.")
-
-        X = np.asarray(X)
-        mean = X @ self.m_N  # (n_samples, 1)
-        mean = mean.squeeze()
-
-        # Predictive variance = (1/beta) + X S_N X^T
-        var = (1 / self.beta) + np.sum(X @ self.S_N * X, axis=1)
-        std = np.sqrt(var)
-
+            raise RuntimeError("Model not fitted yet.")
+            
+        # Add bias term
+        X = np.c_[np.ones(X.shape[0]), X]
+        
+        # Mean prediction
+        mean_pred = X @ self.mean
+        
         if return_interval:
-            z = 1.96 if alpha == 0.05 else abs(np.percentile(np.random.randn(100000), 100 * (1 - alpha/2)))
-            lower = mean - z * std
-            upper = mean + z * std
-            return mean, list(zip(lower, upper))
+            # Predictive variance
+            var = 1/self.beta + np.sum(X @ self.cov * X, axis=1)
+            std = np.sqrt(var)
+            
+            # Confidence intervals using normal distribution
+            z = norm.ppf(1 - alpha/2)  # Changed from multivariate_normal to norm
+            intervals = list(zip(
+                mean_pred - z * std,
+                mean_pred + z * std
+            ))
+            return mean_pred, intervals
+            
+        return mean_pred
 
-        return mean
-
-    def predict_dist(self, X, n_samples=100):
-        """
-        Sample from the posterior predictive distribution.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-        n_samples : int, default=100
-            Number of posterior predictive samples.
-
-        Returns
-        -------
-        samples : ndarray of shape (n_samples, n_points)
-            Predictive draws.
-        """
+    def predict_dist(self, X: np.ndarray, n_samples: int = 100) -> np.ndarray:
+        """Sample from the predictive distribution."""
         if not self.is_fitted:
-            raise RuntimeError("BayesianLinearUQ is not fitted yet.")
-
-        X = np.asarray(X)
-        mean = X @ self.m_N
-        cov = (1 / self.beta) * np.eye(X.shape[0]) + X @ self.S_N @ X.T
-
-        # Draw predictive samples
-        return np.random.multivariate_normal(mean.squeeze(), cov, size=n_samples)
+            raise RuntimeError("Model not fitted yet.")
+            
+        # Add bias term
+        X = np.c_[np.ones(X.shape[0]), X]
+        
+        # Sample from parameter posterior
+        w_samples = np.random.multivariate_normal(
+            self.mean.ravel(), 
+            self.cov, 
+            size=n_samples
+        )
+        
+        # Get predictions for each sampled parameter
+        predictions = X @ w_samples.T
+        return predictions

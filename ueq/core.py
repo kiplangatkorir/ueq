@@ -2,7 +2,6 @@ from .methods.bootstrap import BootstrapUQ
 from .methods.conformal import ConformalUQ
 from .methods.mc_dropout import MCDropoutUQ
 from .methods.deep_ensemble import DeepEnsembleUQ
-from .methods.bayesian_linear import BayesianLinearUQ
 
 
 class UQ:
@@ -49,7 +48,7 @@ class UQ:
             return DeepEnsembleUQ(self.model, **kwargs)
 
         elif self.method == "bayesian_linear":
-            # Bayesian Linear Regression doesn’t use self.model
+            from .methods.bayesian_linear import BayesianLinearUQ
             return BayesianLinearUQ(**kwargs)
 
         else:
