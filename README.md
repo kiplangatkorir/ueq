@@ -3,7 +3,7 @@
 # 🌀 Uncertainty Everywhere (UEQ)
 
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)]()
-[![License: Apache 2.0](https://img.shields.io/badge/License-MIT-green.svg)]()
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache-green.svg)]()
 [![Status](https://img.shields.io/badge/status-MVP-orange)]()
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
 
