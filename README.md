@@ -7,34 +7,35 @@
 [![Status](https://img.shields.io/badge/status-MVP-orange)]()
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
 
-**Bootstrap. Conformal. Dropout.**  
+**Bootstrap. Conformal. Dropout. Ensembles. Bayes.**  
 _Uncertainty for every model, everywhere._
 
 </div>
 
-
-**A unified Python library for Uncertainty Quantification (UQ).**
+**A unified Python library for Uncertainty Quantification (UQ).**  
 Easily wrap your machine learning models and get predictions **with confidence intervals, coverage guarantees, or Bayesian-style uncertainty** — all from one interface.
 
 ##  Features
 
-* ✅ **One API** for many uncertainty methods
-* ✅ Works with **scikit-learn models** (e.g., LinearRegression, RandomForest)
-* ✅ Works with **PyTorch deep learning models**
-* ✅ Plug-and-play methods:
+* ✅ **One API** for many uncertainty methods  
+* ✅ Works with **scikit-learn models** (e.g., LinearRegression, RandomForest)  
+* ✅ Works with **PyTorch deep learning models**  
+* ✅ Plug-and-play methods:  
+  * **Bootstrap** (frequentist ensembles)  
+  * **Conformal Prediction** (distribution-free coverage)  
+  * **MC Dropout** (Bayesian deep learning approximation)  
+  * **Deep Ensembles** (Lakshminarayanan et al., 2017)  
+  * **Bayesian Linear Regression** (closed-form Bayesian updates)  
+* ✅ Extensible: add new UQ methods without changing user code  
 
-  * **Bootstrap** (frequentist ensembles)
-  * **Conformal Prediction** (distribution-free coverage)
-  * **MC Dropout** (Bayesian deep learning approximation)
-* ✅ Extensible: add new UQ methods without changing user code
 
 ##  Installation
 
 ```bash
-git clone https://github.com/kiplangatkorir/ueq/.git
+git clone https://github.com/kiplangatkorir/ueq.git
 cd ueq
 pip install -e .
-```
+````
 
 ##  Quick Start
 
@@ -70,6 +71,7 @@ preds, intervals = uq.predict(X_test[:5])
 print("Predictions:", preds)
 print("Intervals:", intervals)
 ```
+
 ### 3. MC Dropout (PyTorch)
 
 ```python
@@ -102,20 +104,67 @@ print("Mean predictions:", mean)
 print("Uncertainty:", std)
 ```
 
-## Roadmap
+### 4. Deep Ensembles
+
+```python
+from ueq import UQ
+import torch, torch.nn as nn, torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+class TinyNet(nn.Module):
+    def __init__(self, input_dim=3):
+        super().__init__()
+        self.fc1 = nn.Linear(input_dim, 16)
+        self.fc2 = nn.Linear(16, 1)
+
+    def forward(self, x):
+        return self.fc2(torch.relu(self.fc1(x)))
+
+X = torch.randn(100, 3)
+y = torch.sum(X, dim=1, keepdim=True) + 0.1 * torch.randn(100, 1)
+loader = DataLoader(TensorDataset(X, y), batch_size=16, shuffle=True)
+
+uq = UQ(lambda: TinyNet(input_dim=3), method="deep_ensemble", n_models=3)
+criterion = nn.MSELoss()
+optimizer_fn = lambda params: optim.Adam(params, lr=0.01)
+
+uq.fit(loader, criterion, optimizer_fn, epochs=5)
+mean, intervals = uq.predict(torch.randn(5, 3))
+
+print("Mean predictions:", mean)
+print("Intervals:", intervals)
+```
+
+### 5. Bayesian Linear Regression
+
+```python
+from sklearn.datasets import make_regression
+from ueq import UQ
+
+X, y = make_regression(n_samples=100, n_features=3, noise=0.1, random_state=42)
+
+uq = UQ(method="bayesian_linear", alpha=2.0, beta=25.0)
+uq.fit(X, y)
+
+preds, intervals = uq.predict(X[:5])
+print("Predictions:", preds)
+print("Intervals:", intervals)
+```
+
+##  Roadmap
 
 * [ ] Visualization utilities (calibration plots, coverage curves)
-* [ ] Additional UQ methods (Quantile Regression, Bayesian Linear Models, Deep Ensembles)
+* [ ] Additional UQ methods (Quantile Regression, Gaussian Processes, Normalizing Flows)
 * [ ] Documentation website with tutorials
 * [ ] Publish to PyPI (`pip install ueq`)
 
-## Contributing
+##  Contributing
 
 Pull requests and ideas are welcome!
 Whether it’s new methods, bug fixes, or docs improvements — let’s make UQ accessible everywhere.
 
-## 📜 License
-Licensed under the **Apache License 2.0**.  
-You may use, modify, and distribute this library in research and production under the terms of the license.  
-See the [LICENSE](LICENSE) file for details.
+##  License
 
+Licensed under the **Apache License 2.0**.
+You may use, modify, and distribute this library in research and production under the terms of the license.
+See the [LICENSE](LICENSE) file for details.
