@@ -81,7 +81,7 @@ class DeepEnsembleUQ:
 
         Returns
         -------
-        mean : np.ndarray
+        mean : np.ndarray of shape (n_samples, 1)
             Mean predictions across ensemble.
         intervals : list of tuples
             Prediction intervals (lower, upper) if return_interval=True.
@@ -91,26 +91,28 @@ class DeepEnsembleUQ:
 
         self.models = [m.eval() for m in self.models]
         with torch.no_grad():
-            preds = [m(X.to(self.device)).cpu().numpy().squeeze() for m in self.models]
+            preds = [m(X.to(self.device)).cpu().numpy().reshape(-1, 1) for m in self.models]
 
-        preds = np.array(preds)  # shape: (n_models, n_samples)
-        mean = preds.mean(axis=0)
+        preds = np.stack(preds, axis=0)  # (n_models, n_samples, 1)
+        mean = preds.mean(axis=0)        # (n_samples, 1)
 
         if return_interval:
-            lower = np.percentile(preds, 100 * alpha / 2, axis=0)
-            upper = np.percentile(preds, 100 * (1 - alpha / 2), axis=0)
-            return mean, list(zip(lower, upper))
+            lower = np.percentile(preds, 100 * alpha / 2, axis=0).reshape(-1, 1)
+            upper = np.percentile(preds, 100 * (1 - alpha / 2), axis=0).reshape(-1, 1)
+            intervals = list(zip(lower.flatten(), upper.flatten()))
+            return mean, intervals
 
         return mean
 
     def predict_dist(self, X):
         """
         Return full predictive distribution (all ensemble predictions).
+        Shape: (n_models, n_samples, 1)
         """
         if not self.is_fitted:
             raise RuntimeError("DeepEnsembleUQ is not fitted yet.")
 
         with torch.no_grad():
-            preds = [m(X.to(self.device)).cpu().numpy().squeeze() for m in self.models]
+            preds = [m(X.to(self.device)).cpu().numpy().reshape(-1, 1) for m in self.models]
 
-        return np.array(preds)  # (n_models, n_samples)
+        return np.stack(preds, axis=0)
