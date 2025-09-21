@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌀 Uncertainty Everywhere (UEQ)
+# 🌀 Uncertainty Everywhere (UEQ) 
 
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)]()
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache-green.svg)]()
