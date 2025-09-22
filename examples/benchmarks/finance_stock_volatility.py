@@ -16,12 +16,13 @@ X, y = returns[:-1], returns[1:]
 n = int(0.8 * len(X))
 X_train, X_test, y_train, y_test = X[:n], X[n:], y[:n], y[n:]
 
-# 3. Deep Ensemble
+# 3. Bootstrap UQ
 uq = UQ(
-    model=lambda: MLPRegressor(hidden_layer_sizes=(32, 32), max_iter=300),
+    model=MLPRegressor(),
     method="bootstrap",
-    n_models=5
+    n_models=10
 )
+
 uq.fit(X_train, y_train)
 mean_pred, intervals = uq.predict(X_test, return_interval=True)
 
