@@ -29,10 +29,10 @@ def evaluate(
     # Compute requested metrics
     if y_test is not None:
         metric_funcs = {
-            "coverage": coverage,
-            "sharpness": sharpness,
-            "ece": expected_calibration_error,
-            "mce": maximum_calibration_error
+            "coverage": lambda y, i: coverage(y, i),
+            "sharpness": lambda y, i: sharpness(i),  # Fix: only pass intervals
+            "ece": lambda y, i: expected_calibration_error(y, i),
+            "mce": lambda y, i: maximum_calibration_error(y, i)
         }
         
         for metric in metrics:
