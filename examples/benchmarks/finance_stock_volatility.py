@@ -10,7 +10,7 @@ from ueq.utils.metrics import coverage, sharpness, expected_calibration_error
 # 1. Load stock data (Apple)
 data = yf.download("AAPL", start="2020-01-01", end="2023-01-01")
 returns = data["Close"].pct_change().dropna().values.reshape(-1, 1)
-X, y = returns[:-1], returns[1:]
+X, y = returns[:-1], returns[1:].ravel()
 
 # 2. Train-test split
 n = int(0.8 * len(X))
