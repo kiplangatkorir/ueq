@@ -1,73 +1,73 @@
 import numpy as np
 
-
 class ConformalUQ:
     """
     Conformal Prediction for Uncertainty Quantification.
 
-    Provides distribution-free prediction intervals with guaranteed coverage.
+    Supports both regression (intervals) and classification (prediction sets).
 
     Parameters
     ----------
     model : object
         Any scikit-learn compatible estimator.
     alpha : float, default=0.05
-        Significance level (e.g., 0.05 = 95% confidence intervals).
+        Significance level (e.g., 0.05 = 95% confidence level).
+    task_type : str, default="regression"
+        Either "regression" or "classification".
     """
 
-    def __init__(self, model, alpha=0.05):
+    def __init__(self, model, alpha=0.05, task_type="regression"):
         self.base_model = model
         self.alpha = alpha
+        self.task_type = task_type
         self.q = None
         self.is_fitted = False
 
     def fit(self, X_train, y_train, X_calib, y_calib):
         """
-        Fit the model on training data and calibrate on calibration data.
-
-        Parameters
-        ----------
-        X_train, y_train : array-like
-            Training data.
-        X_calib, y_calib : array-like
-            Calibration data.
+        Fit model on training data and calibrate using calibration set.
         """
         self.base_model.fit(X_train, y_train)
 
-        # Predictions on calibration set
-        preds = self.base_model.predict(X_calib)
+        if self.task_type == "regression":
+            preds = self.base_model.predict(X_calib)
+            scores = np.abs(y_calib - preds)  # residuals
+            n = len(scores)
+            k = int(np.ceil((1 - self.alpha) * (n + 1)))
+            self.q = np.sort(scores)[min(k, n) - 1]
 
-        # Nonconformity scores
-        scores = np.abs(y_calib - preds)
+        elif self.task_type == "classification":
+            probas = self.base_model.predict_proba(X_calib)
+            true_class_probs = probas[np.arange(len(y_calib)), y_calib]
+            scores = 1 - true_class_probs
+            n = len(scores)
+            k = int(np.ceil((1 - self.alpha) * (n + 1)))
+            self.q = np.sort(scores)[min(k, n) - 1]
 
-        # Quantile for intervals
-        n = len(scores)
-        k = int(np.ceil((1 - self.alpha) * (n + 1)))  # conformal quantile
-        self.q = np.sort(scores)[min(k, n) - 1]
+        else:
+            raise ValueError(f"Unknown task_type: {self.task_type}")
 
         self.is_fitted = True
         return self
 
-    def predict(self, X):
+    def predict(self, X, return_interval=False):
         """
-        Predict with conformal prediction intervals.
-
-        Parameters
-        ----------
-        X : array-like
-            Test inputs.
-
-        Returns
-        -------
-        preds : np.ndarray
-            Point predictions.
-        intervals : list of tuples
-            (lower, upper) prediction intervals.
+        Predict with conformal intervals (regression) or prediction sets (classification).
         """
         if not self.is_fitted:
             raise RuntimeError("ConformalUQ model is not fitted yet.")
 
-        preds = self.base_model.predict(X)
-        intervals = [(p - self.q, p + self.q) for p in preds]
+        if self.task_type == "regression":
+            preds = self.base_model.predict(X)
+            intervals = [(p - self.q, p + self.q) for p in preds]
+            return (preds, intervals) if return_interval else preds
 
-        return preds, intervals
+        elif self.task_type == "classification":
+            probas = self.base_model.predict_proba(X)
+            pred_sets = [set(np.where(p >= 1 - self.q)[0]) for p in probas]
+
+            if return_interval:
+                labels = [list(s)[0] if len(s) == 1 else -1 for s in pred_sets]
+                return labels, pred_sets
+            else:
+                return pred_sets
