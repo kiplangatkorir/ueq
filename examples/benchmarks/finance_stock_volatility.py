@@ -19,7 +19,7 @@ X_train, X_test, y_train, y_test = X[:n], X[n:], y[:n], y[n:]
 # 3. Deep Ensemble
 uq = UQ(
     model=lambda: MLPRegressor(hidden_layer_sizes=(32, 32), max_iter=300),
-    method="deep_ensemble",
+    method="bootstrap",
     n_models=5
 )
 uq.fit(X_train, y_train)
