@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.calibration import calibration_curve
 
 from ueq import UQ
-from ueq.utils.metrics import coverage, sharpness, expected_calibration_error
 
 
 def main():
@@ -14,8 +13,12 @@ def main():
     data = load_breast_cancer()
     X, y = data.data, data.target  # 0 = malignant, 1 = benign
 
-    X_train, X_test, y_train, y_test = train_test_split(
+    # Train / Calib / Test split
+    X_train_full, X_test, y_train_full, y_test = train_test_split(
         X, y, test_size=0.3, random_state=42, stratify=y
+    )
+    X_train, X_calib, y_train, y_calib = train_test_split(
+        X_train_full, y_train_full, test_size=0.2, random_state=42, stratify=y_train_full
     )
 
     # 2. Use Conformal UQ with RandomForest
@@ -23,22 +26,22 @@ def main():
         model=RandomForestClassifier(n_estimators=100, random_state=42),
         method="conformal",
     )
-    uq.fit(X_train, y_train)
+    uq.fit(X_train, y_train, X_calib, y_calib)
 
     # 3. Predict with intervals (classification: prediction sets)
     pred_labels, pred_sets = uq.predict(X_test, return_interval=True)
 
-    # Convert pred_sets -> coverage indicator
+    # Coverage: % of true labels inside prediction sets
     coverage_hits = [y_test[i] in pred_sets[i] for i in range(len(y_test))]
     cov = np.mean(coverage_hits)
 
-    # Sharpness = avg size of prediction set (smaller = sharper)
+    # Sharpness: average size of prediction set
     sharp = np.mean([len(s) for s in pred_sets])
 
     # Calibration error (ECE for classification)
-    rf = RandomForestClassifier(n_estimators=100, random_state=42)
-    rf.fit(X_train, y_train)
-    prob = rf.predict_proba(X_test)[:, 1]
+    base_model = RandomForestClassifier(n_estimators=100, random_state=42)
+    base_model.fit(X_train, y_train)
+    prob = base_model.predict_proba(X_test)[:, 1]
     frac_pos, mean_pred = calibration_curve(y_test, prob, n_bins=10)
 
     ece = np.mean(np.abs(frac_pos - mean_pred))
