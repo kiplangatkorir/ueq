@@ -60,18 +60,29 @@ class MLPDropout(nn.Module):
 # ------------------------------
 # 3. Wrap with MC Dropout UQ
 # ------------------------------
+model = MLPDropout(X_train.shape[1], dropout_rate=0.2)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+criterion = nn.MSELoss()
+
 uq = UQ(
-    model=lambda: MLPDropout(X_train.shape[1], dropout_rate=0.2),
+    model=model,
     method="mc_dropout",
     n_forward_passes=30,
-    lr=1e-3,
-    epochs=50,
-    batch_size=64,
     device="cpu"
 )
 
-uq.fit(X_train, y_train)
-mean_pred, intervals = uq.predict(X_test)
+# Train the model with optimizer
+uq.fit(
+    train_loader,  # Use DataLoader instead of raw arrays
+    optimizer=optimizer,
+    criterion=criterion,
+    epochs=10,
+    verbose=True
+)
+
+# Convert test data to tensor for prediction
+X_test_tensor = torch.FloatTensor(X_test)
+mean_pred, intervals = uq.predict(X_test_tensor)
 
 # ------------------------------
 # 4. Metrics
