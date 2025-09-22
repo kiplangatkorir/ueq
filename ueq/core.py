@@ -3,7 +3,7 @@ from .methods.conformal import ConformalUQ
 from .methods.mc_dropout import MCDropoutUQ
 from .methods.deep_ensemble import DeepEnsembleUQ
 
-
+import numpy as np
 class UQ:
     """
     Unified interface for Uncertainty Quantification (UQ).
@@ -59,9 +59,25 @@ class UQ:
         return self.uq_model.fit(*args, **kwargs)
 
     def predict(self, *args, **kwargs):
-        """Predict with uncertainty estimates."""
-        return self.uq_model.predict(*args, **kwargs)
+        """
+        Predict with uncertainty estimates.
+        
+        Returns
+        -------
+        mean : np.ndarray
+            Predicted mean values.
+        intervals : np.ndarray, shape (n_samples, 2), optional
+            Lower and upper bounds of prediction intervals 
+            (only if return_interval=True).
+        """
+        preds = self.uq_model.predict(*args, **kwargs)
 
+        if isinstance(preds, tuple) and len(preds) == 2:
+            mean, intervals = preds
+            intervals = np.array(intervals)  # ensure array, not list of tuples
+            return mean, intervals
+
+        return preds
     def predict_dist(self, *args, **kwargs):
         """Return predictive distribution (if available)."""
         if hasattr(self.uq_model, "predict_dist"):
