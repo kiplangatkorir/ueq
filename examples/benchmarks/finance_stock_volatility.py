@@ -1,4 +1,3 @@
-# examples/benchmarks/finance_stock_volatility.py
 import yfinance as yf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,7 +20,7 @@ X_train, X_test, y_train, y_test = X[:n], X[n:], y[:n], y[n:]
 uq = UQ(
     model=lambda: MLPRegressor(hidden_layer_sizes=(32, 32), max_iter=300),
     method="deep_ensemble",
-    n_estimators=5
+    n_models=5
 )
 uq.fit(X_train, y_train)
 mean_pred, intervals = uq.predict(X_test, return_interval=True)
