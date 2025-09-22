@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_regression
-from sklearn.linear_model import LinearRegression
 
-from ueq import UQ, coverage, sharpness, expected_calibration_error, maximum_calibration_error
+from ueq import UQ
+from ueq.utils.metrics import coverage, sharpness, expected_calibration_error, maximum_calibration_error
+from ueq.utils.visualization import plot_predictions_with_intervals, plot_calibration_curve
 
 
 def main():
@@ -22,8 +23,8 @@ def main():
     # compute metrics
     cov = coverage(y_test, intervals)
     sharp = sharpness(intervals)
-    ece = expected_calibration_error(y_test, intervals, n_bins=5)
-    mce = maximum_calibration_error(y_test, intervals, n_bins=5)
+    ece = expected_calibration_error(y_test, intervals, n_bins=10)
+    mce = maximum_calibration_error(y_test, intervals, n_bins=10)
 
     print("📊 UQ Metrics")
     print(f"Coverage: {cov:.3f}")
@@ -31,20 +32,12 @@ def main():
     print(f"ECE: {ece:.3f}")
     print(f"MCE: {mce:.3f}")
 
-    # visualization
-    plt.figure(figsize=(8, 5))
-    X_test_sorted_idx = np.argsort(X_test[:, 0])
-    X_plot = X_test[X_test_sorted_idx]
-    mean_plot = mean_pred[X_test_sorted_idx]
-    lower = np.array([lo for lo, hi in intervals])[X_test_sorted_idx]
-    upper = np.array([hi for lo, hi in intervals])[X_test_sorted_idx]
+    # --- Visualization ---
+    plot_predictions_with_intervals(X_test, y_test, mean_pred, intervals,
+                                    title="Uncertainty Quantification with Bayesian Linear Regression")
 
-    plt.scatter(X_test, y_test, color="black", label="True")
-    plt.plot(X_plot, mean_plot, color="blue", label="Pred mean")
-    plt.fill_between(X_plot[:, 0], lower, upper, color="blue", alpha=0.2, label="Interval")
-    plt.legend()
-    plt.title("Uncertainty Quantification with Bayesian Linear Regression")
-    plt.show()
+    plot_calibration_curve(intervals, y_test, confidence=0.95,
+                           title="Calibration Curve (Bayesian Linear Regression)")
 
 
 if __name__ == "__main__":
