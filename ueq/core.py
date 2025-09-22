@@ -40,7 +40,7 @@ class UQ:
         elif self.method == "mc_dropout":
             if self.model is None:
                 raise ValueError("MC Dropout requires a model constructor (e.g., lambda: Net()).")
-            return MCDropoutUQ(self.model, **kwargs)
+            return MCDropoutUQ(self.model(), **kwargs)
 
         elif self.method == "deep_ensemble":
             if self.model is None:
