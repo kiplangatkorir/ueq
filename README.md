@@ -13,14 +13,14 @@ _Uncertainty for every model, everywhere._
 </div>
 
 **A unified Python library for Uncertainty Quantification (UQ).**  
-Easily wrap your machine learning models and get predictions **with confidence intervals, coverage guarantees, or Bayesian-style uncertainty** — all from one interface.
+Easily wrap your machine learning models and get predictions **with confidence intervals, coverage guarantees, or Bayesian-style uncertainty** - all from one interface.
 
 ##  Features
 
-* ✅ **One API** for many uncertainty methods  
-* ✅ Works with **scikit-learn models** (e.g., LinearRegression, RandomForest)  
-* ✅ Works with **PyTorch deep learning models**  
-* ✅ Plug-and-play methods:  
+*  **One API** for many uncertainty methods  
+*  Works with **scikit-learn models** (e.g., LinearRegression, RandomForest)  
+*  Works with **PyTorch deep learning models**  
+*  Plug-and-play methods:  
   * **Bootstrap** (frequentist ensembles)  
   * **Conformal Prediction** (distribution-free coverage)  
   * **MC Dropout** (Bayesian deep learning approximation)  
