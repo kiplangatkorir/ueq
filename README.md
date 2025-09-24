@@ -35,7 +35,7 @@ Easily wrap your machine learning models and get predictions **with confidence i
 git clone https://github.com/kiplangatkorir/ueq.git
 cd ueq
 pip install -e .
-````
+```
 
 ##  Quick Start
 
@@ -48,7 +48,7 @@ from ueq import UQ
 
 X, y = make_regression(n_samples=200, n_features=5, noise=10, random_state=42)
 
-uq = UQ(LinearRegression(), method="bootstrap", n_samples=20)
+uq = UQ(LinearRegression(), method="bootstrap", n_models=20)
 uq.fit(X, y)
 preds, intervals = uq.predict(X[:5])
 
@@ -67,7 +67,7 @@ X_calib, X_test, y_calib, y_test = train_test_split(X_temp, y_temp, test_size=0.
 uq = UQ(LinearRegression(), method="conformal", alpha=0.1)
 uq.fit(X_train, y_train, X_calib, y_calib)
 
-preds, intervals = uq.predict(X_test[:5])
+preds, intervals = uq.predict(X_test[:5], return_interval=True)
 print("Predictions:", preds)
 print("Intervals:", intervals)
 ```
@@ -92,11 +92,10 @@ class Net(nn.Module):
     def forward(self, x):
         return self.fc2(self.drop(torch.relu(self.fc1(x))))
 
-model = Net()
-uq = UQ(model, method="mc_dropout", n_forward_passes=100)
+uq = UQ(lambda: Net(), method="mc_dropout", n_forward_passes=100)
 
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.01)
+optimizer = optim.Adam(uq.uq_model.model.parameters(), lr=0.01)
 uq.fit(loader, criterion, optimizer, epochs=10)
 
 mean, std = uq.predict(torch.randn(5, 10))
