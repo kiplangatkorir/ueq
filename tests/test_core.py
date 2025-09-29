@@ -39,7 +39,7 @@ def test_core_conformal():
     uq = UQ(base_model, method="conformal", alpha=0.1)
 
     uq.fit(X_train, y_train, X_calib, y_calib)
-    preds, intervals = uq.predict(X_test[:5])
+    preds, intervals = uq.predict(X_test[:5], return_interval=True)
 
     assert preds.shape[0] == 5
     assert len(intervals) == 5

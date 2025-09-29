@@ -6,7 +6,7 @@ from .utils.metrics import (
     maximum_calibration_error
 )
 
-__version__ = "0.1.0"
+__version__ = "1.0.1"
 __all__ = [
     "UQ",
     "coverage",

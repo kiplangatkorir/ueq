@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="ueq",
-    version="0.1.0",
+    version="1.0.1",
     description="Uncertainty Everywhere - A unified Python library for Uncertainty Quantification",
     author="Kiplangat Korir",
     author_email="korirkiplangat22@gmail.com",

@@ -40,7 +40,7 @@ def test_evaluate_with_sklearn_model():
         method="bootstrap",
         X_train=X_train, y_train=y_train,
         X_test=X_test, y_test=y_test,
-        n_estimators=3
+        n_models=3
     )
 
     assert "mean" in results

@@ -13,7 +13,7 @@ def test_conformal_intervals_cover():
     model = LinearRegression()
     uq = ConformalUQ(model, alpha=0.1)
     uq.fit(X_train, y_train, X_calib, y_calib)
-    preds, intervals = uq.predict(X_test)
+    preds, intervals = uq.predict(X_test, return_interval=True)
 
     # Coverage check: ~90% should fall in interval
     covered = sum(low <= yt <= high for yt, (_, (low, high)) in zip(y_test, zip(preds, intervals)))

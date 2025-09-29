@@ -15,6 +15,11 @@ _Uncertainty for every model, everywhere._
 **A unified Python library for Uncertainty Quantification (UQ).**  
 Easily wrap your machine learning models and get predictions **with confidence intervals, coverage guarantees, or Bayesian-style uncertainty** - all from one interface.
 
+**🚀 NEW in v1.0.1: Auto-detection and Cross-Framework Ensembles!**
+- Automatically detects model types and selects optimal UQ methods
+- Combine models from different frameworks (sklearn + PyTorch) in unified ensembles
+- Zero-configuration uncertainty quantification: `UQ(model)` just works!
+
 ##  Features
 
 *  **One API** for many uncertainty methods  
@@ -38,6 +43,38 @@ pip install -e .
 ```
 
 ##  Quick Start
+
+### 🎯 Auto-Detection (NEW!)
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestClassifier
+import torch.nn as nn
+from ueq import UQ
+
+# Auto-detects sklearn regressor → uses bootstrap
+sklearn_model = LinearRegression()
+uq1 = UQ(sklearn_model)  # method="auto" by default
+
+# Auto-detects sklearn classifier → uses conformal prediction  
+clf_model = RandomForestClassifier()
+uq2 = UQ(clf_model)
+
+# Auto-detects PyTorch model → uses MC dropout
+class Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc = nn.Linear(10, 1)
+    def forward(self, x):
+        return self.fc(x)
+
+pytorch_model = Net()
+uq3 = UQ(pytorch_model)
+
+# Auto-detects cross-framework ensemble
+models = [sklearn_model, pytorch_model]
+uq4 = UQ(models)  # Creates cross-framework ensemble
+```
 
 ### 1. Bootstrap (scikit-learn)
 
@@ -150,10 +187,39 @@ print("Predictions:", preds)
 print("Intervals:", intervals)
 ```
 
+### 6. Cross-Framework Ensemble (NEW!)
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+import torch.nn as nn
+from ueq import UQ
+
+# Create models from different frameworks
+sklearn_model1 = LinearRegression()
+sklearn_model2 = RandomForestRegressor()
+pytorch_model = Net()  # Your PyTorch model
+
+# Combine them in a cross-framework ensemble
+models = [sklearn_model1, sklearn_model2, pytorch_model]
+uq = UQ(models)  # Auto-detects cross-framework ensemble
+
+# Fit and predict with unified uncertainty
+uq.fit(X_train, y_train)
+mean_pred, intervals = uq.predict(X_test, return_interval=True)
+
+print("Cross-framework predictions:", mean_pred)
+print("Unified uncertainty intervals:", intervals)
+```
+
 ##  Roadmap
 
-* [ ] Visualization utilities (calibration plots, coverage curves)
+* [x] **Auto-detection system** - Automatically select optimal UQ methods
+* [x] **Cross-framework ensembles** - Combine models from different frameworks
+* [x] **Enhanced visualization** - Calibration plots and coverage curves
 * [ ] Additional UQ methods (Quantile Regression, Gaussian Processes, Normalizing Flows)
+* [ ] TensorFlow/Keras support
+* [ ] XGBoost/LightGBM support
 * [ ] Documentation website with tutorials
 * [ ] Publish to PyPI (`pip install ueq`)
 
