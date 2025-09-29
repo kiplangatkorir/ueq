@@ -20,6 +20,16 @@ This documentation provides everything you need to understand, use, and deploy U
 ### Installation
 
 ```bash
+pip install ueq
+```
+
+**That's it!** UEQ is now available on PyPI. No need to clone or build from source.
+
+### Development Installation
+
+If you want to contribute or use the latest development version:
+
+```bash
 git clone https://github.com/kiplangatkorir/ueq.git
 cd ueq
 pip install -e .
@@ -290,8 +300,23 @@ This project is licensed under the MIT License - see the main repository for det
 
 - **Documentation**: This comprehensive guide
 - **Examples**: Run the examples in `examples/` directory
-- **Issues**: Report bugs and request features on GitHub
+- **Issues**: Report bugs and request features on [GitHub Issues](https://github.com/kiplangatkorir/ueq/issues)
 - **Discussions**: Join community discussions
+
+### 🐛 Reporting Issues
+
+If you encounter any problems:
+
+1. **Check the documentation** first
+2. **Search existing issues** to see if your problem is already reported
+3. **Create a new issue** with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Python version and UEQ version (`ueq.__version__`)
+   - Error messages (if any)
+
+**We're here to help!** 🚀
 
 ---
 

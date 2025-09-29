@@ -42,6 +42,16 @@ Easily wrap your machine learning models and get predictions **with confidence i
 ##  Installation
 
 ```bash
+pip install ueq
+```
+
+**That's it!** UEQ is now available on PyPI. No need to clone or build from source.
+
+### Development Installation
+
+If you want to contribute or use the latest development version:
+
+```bash
 git clone https://github.com/kiplangatkorir/ueq.git
 cd ueq
 pip install -e .
@@ -257,12 +267,27 @@ class ProductionUQService:
 * [ ] TensorFlow/Keras support
 * [ ] XGBoost/LightGBM support
 * [ ] Documentation website with tutorials
-* [ ] Publish to PyPI (`pip install ueq`)
+* [x] **Publish to PyPI** - Now available with `pip install ueq`! 🎉
 
 ##  Contributing
 
 Pull requests and ideas are welcome!
-Whether it’s new methods, bug fixes, or docs improvements — let’s make UQ accessible everywhere.
+Whether it's new methods, bug fixes, or docs improvements — let's make UQ accessible everywhere.
+
+### 🐛 Issues and Support
+
+If you encounter any problems or have questions:
+
+1. **Check the [documentation](docs/)** for comprehensive guides and examples
+2. **Search existing [issues](https://github.com/kiplangatkorir/ueq/issues)** to see if your problem is already reported
+3. **Create a new issue** with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Python version and UEQ version (`ueq.__version__`)
+   - Error messages (if any)
+
+**We're here to help!** 🚀
 
 ##  License
 

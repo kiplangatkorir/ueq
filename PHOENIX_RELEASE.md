@@ -151,6 +151,15 @@ Phoenix sets the foundation for future releases:
 
 ### **Installation**
 ```bash
+pip install ueq
+```
+
+**That's it!** UEQ is now available on PyPI. No need to clone or build from source.
+
+### **Development Installation**
+If you want to contribute or use the latest development version:
+
+```bash
 git clone https://github.com/kiplangatkorir/ueq.git
 cd ueq
 pip install -e .
@@ -238,7 +247,22 @@ Phoenix represents months of development and community feedback. Special thanks 
 *Ready to experience the power of Phoenix? Install UEQ v1.0.1 and let the magic begin!*
 
 ```bash
-pip install -e .
+pip install ueq
 ```
+
+## 🐛 Issues and Support
+
+If you encounter any problems:
+
+1. **Check the [documentation](docs/)** for comprehensive guides and examples
+2. **Search existing [issues](https://github.com/kiplangatkorir/ueq/issues)** to see if your problem is already reported
+3. **Create a new issue** with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Python version and UEQ version (`ueq.__version__`)
+   - Error messages (if any)
+
+**We're here to help!** 🚀
 
 **🔥 Phoenix - Rising from Research to Production 🔥**

@@ -15,6 +15,16 @@
 ### Installation
 
 ```bash
+pip install ueq
+```
+
+**That's it!** UEQ is now available on PyPI. No need to clone or build from source.
+
+### Development Installation
+
+If you want to contribute or use the latest development version:
+
+```bash
 git clone https://github.com/kiplangatkorir/ueq.git
 cd ueq
 pip install -e .
@@ -587,3 +597,18 @@ except Exception as e:
 ```
 
 This tutorial covers the essential aspects of using UEQ effectively. For more specific use cases, refer to the examples in the `examples/` directory.
+
+## 🐛 Issues and Support
+
+If you encounter any problems while following this tutorial:
+
+1. **Check the [API documentation](API.md)** for detailed method signatures
+2. **Search existing [issues](https://github.com/kiplangatkorir/ueq/issues)** to see if your problem is already reported
+3. **Create a new issue** with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Python version and UEQ version (`ueq.__version__`)
+   - Error messages (if any)
+
+**We're here to help!** 🚀

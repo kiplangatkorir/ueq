@@ -80,6 +80,29 @@ uq = UQ(model)  # Automatically selects bootstrap for sklearn regressors
 - Production deployment features
 - Performance optimizations
 
+## Installation
+
+```bash
+pip install ueq
+```
+
+**That's it!** UEQ is now available on PyPI. No need to clone or build from source.
+
+## 🐛 Issues and Support
+
+If you encounter any problems:
+
+1. **Check the [documentation](docs/)** for comprehensive guides and examples
+2. **Search existing [issues](https://github.com/kiplangatkorir/ueq/issues)** to see if your problem is already reported
+3. **Create a new issue** with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Python version and UEQ version (`ueq.__version__`)
+   - Error messages (if any)
+
+**We're here to help!** 🚀
+
 ---
 
 **Full Changelog:** https://github.com/kiplangatkorir/ueq/blob/main/CHANGELOG.md

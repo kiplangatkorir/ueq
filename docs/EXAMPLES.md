@@ -1210,3 +1210,19 @@ if __name__ == "__main__":
 - Performance evaluation
 
 This comprehensive examples documentation covers all the major use cases and features of UEQ, from basic usage to advanced production scenarios. Each example is designed to be educational and immediately runnable.
+
+## 🐛 Issues and Support
+
+If you encounter any problems while running the examples:
+
+1. **Check the [API documentation](API.md)** for detailed method signatures
+2. **Search existing [issues](https://github.com/kiplangatkorir/ueq/issues)** to see if your problem is already reported
+3. **Create a new issue** with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Python version and UEQ version (`ueq.__version__`)
+   - Error messages (if any)
+   - Which example you were running
+
+**We're here to help!** 🚀
