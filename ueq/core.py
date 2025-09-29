@@ -4,47 +4,133 @@ from .methods.mc_dropout import MCDropoutUQ
 from .methods.deep_ensemble import DeepEnsembleUQ
 
 import numpy as np
+import torch
+import torch.nn as nn
+
 class UQ:
     """
-    Unified interface for Uncertainty Quantification (UQ).
+    Unified interface for Uncertainty Quantification (UQ) with auto-detection.
     
     Parameters
     ----------
     model : object or callable, optional
-        - For sklearn-style models: pass the model instance (Bootstrap, Conformal).
-        - For deep learning ensembles: pass a model constructor (e.g., lambda: Net()).
+        - For sklearn-style models: pass the model instance (Bootstrap, Conformal).                                                                             
+        - For deep learning ensembles: pass a model constructor (e.g., lambda: Net()).                                                                          
+        - For PyTorch models: pass the model instance (MC Dropout)
         - Not required for Bayesian Linear Regression.
-    method : str
+    method : str, default="auto"
         Uncertainty method. Options: 
-        ["bootstrap", "conformal", "mc_dropout", "deep_ensemble", "bayesian_linear"].
+        ["auto", "bootstrap", "conformal", "mc_dropout", "deep_ensemble", "bayesian_linear"].
+        If "auto", the best method is automatically selected based on model type.                                                                           
     **kwargs :
         Additional arguments passed to the chosen method.
     """
 
-    def __init__(self, model=None, method="bootstrap", **kwargs):
+    def __init__(self, model=None, method="auto", **kwargs):
         self.model = model
-        self.method = method.lower()
+        self.model_type = self._detect_model_type(model)
+        self.method = self._auto_select_method(self.model_type, method.lower())
         self.uq_model = self._init_method(**kwargs)
+
+    def _detect_model_type(self, model):
+        """
+        Auto-detect model framework and type.
+        
+        Returns
+        -------
+        str
+            Model type: "none", "sklearn_classifier", "sklearn_regressor", 
+            "pytorch", "constructor", "unknown"
+        """
+        if model is None:
+            return "none"
+        
+        # Check for scikit-learn style models
+        if hasattr(model, 'fit') and hasattr(model, 'predict'):
+            if hasattr(model, 'predict_proba'):
+                return "sklearn_classifier"
+            else:
+                return "sklearn_regressor"
+        
+        # Check for PyTorch models
+        if hasattr(model, 'forward') and hasattr(model, 'parameters'):
+            return "pytorch"
+        
+        # Check for constructor functions
+        if callable(model):
+            return "constructor"
+        
+        return "unknown"
+
+    def _auto_select_method(self, model_type, method):
+        """
+        Auto-select best UQ method based on model type.
+        
+        Parameters
+        ----------
+        model_type : str
+            Detected model type
+        method : str
+            User-specified method (or "auto")
+            
+        Returns
+        -------
+        str
+            Selected UQ method
+        """
+        if method != "auto":
+            return method
+        
+        # Auto-selection mapping
+        method_map = {
+            "sklearn_regressor": "bootstrap",
+            "sklearn_classifier": "conformal", 
+            "pytorch": "mc_dropout",
+            "constructor": "deep_ensemble",
+            "none": "bayesian_linear"
+        }
+        
+        selected_method = method_map.get(model_type, "bootstrap")
+        
+        if model_type == "unknown":
+            raise ValueError(
+                f"Unknown model type: {type(self.model)}. "
+                "Please specify method explicitly or use a supported model type."
+            )
+        
+        return selected_method
 
     def _init_method(self, **kwargs):
         if self.method == "bootstrap":
             if self.model is None:
-                raise ValueError("Bootstrap requires a model instance.")
+                raise ValueError("Bootstrap requires a model instance.")        
             return BootstrapUQ(self.model, **kwargs)
 
         elif self.method == "conformal":
             if self.model is None:
-                raise ValueError("Conformal requires a model instance.")
+                raise ValueError("Conformal requires a model instance.")        
             return ConformalUQ(self.model, **kwargs)
 
         elif self.method == "mc_dropout":
             if self.model is None:
-                raise ValueError("MC Dropout requires a model constructor (e.g., lambda: Net()).")
-            return MCDropoutUQ(self.model(), **kwargs)
+                raise ValueError("MC Dropout requires a model instance or constructor.")
+            
+            # Handle both model instances and constructors
+            if self.model_type == "pytorch":
+                # Direct PyTorch model instance
+                return MCDropoutUQ(self.model, **kwargs)
+            elif self.model_type == "constructor":
+                # Model constructor function
+                return MCDropoutUQ(self.model(), **kwargs)
+            else:
+                raise ValueError(
+                    f"MC Dropout requires a PyTorch model or constructor, "
+                    f"got {self.model_type}"
+                )
 
         elif self.method == "deep_ensemble":
             if self.model is None:
-                raise ValueError("Deep Ensemble requires a model constructor (e.g., lambda: Net()).")
+                raise ValueError("Deep Ensemble requires a model constructor (e.g., lambda: Net()).")                                                           
             return DeepEnsembleUQ(self.model, **kwargs)
 
         elif self.method == "bayesian_linear":
@@ -91,3 +177,18 @@ class UQ:
             return self.uq_model.calibrate(*args, **kwargs)
         else:
             raise NotImplementedError(f"{self.method} does not support calibrate().")
+
+    def get_info(self):
+        """
+        Get information about the detected model type and selected method.
+        
+        Returns
+        -------
+        dict
+            Dictionary with model_type, method, and model_class information
+        """
+        return {
+            "model_type": self.model_type,
+            "method": self.method,
+            "model_class": type(self.model).__name__ if self.model is not None else None
+        }
