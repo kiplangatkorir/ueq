@@ -9,7 +9,7 @@ X, y = make_regression(n_samples=200, n_features=10, noise=5, random_state=42)
 model = RandomForestRegressor()
 
 # Wrap with Uncertainty Everywhere
-uq = UQ(model, method="bootstrap", n_samples=50, random_state=42)
+uq = UQ(model, method="bootstrap", n_models=50, random_state=42)
 
 # Fit
 uq.fit(X, y)

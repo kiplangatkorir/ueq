@@ -74,15 +74,18 @@ uq = UQ(
 # Train the model with optimizer
 uq.fit(
     train_loader,  # Use DataLoader instead of raw arrays
-    optimizer=optimizer,
     criterion=criterion,
-    epochs=10,
-    verbose=True
+    optimizer=optimizer,
+    epochs=10
 )
 
 # Convert test data to tensor for prediction
 X_test_tensor = torch.FloatTensor(X_test)
-mean_pred, intervals = uq.predict(X_test_tensor)
+mean_pred, std_pred = uq.predict(X_test_tensor)
+
+# Convert std to intervals for metrics
+intervals = [(mean_pred[i] - 1.96 * std_pred[i], mean_pred[i] + 1.96 * std_pred[i]) 
+             for i in range(len(mean_pred))]
 
 # ------------------------------
 # 4. Metrics
@@ -98,10 +101,12 @@ print("ECE:", expected_calibration_error(y_test, intervals))
 plt.figure(figsize=(10, 5))
 plt.plot(y_test[:200], label="True", alpha=0.7)
 plt.plot(mean_pred[:200], label="Predicted Mean", alpha=0.7)
+# Convert intervals to arrays for plotting
+intervals_array = np.array(intervals)
 plt.fill_between(
     np.arange(200),
-    intervals[:200, 0],
-    intervals[:200, 1],
+    intervals_array[:200, 0].flatten(),
+    intervals_array[:200, 1].flatten(),
     color="orange",
     alpha=0.3,
     label="Uncertainty Interval"

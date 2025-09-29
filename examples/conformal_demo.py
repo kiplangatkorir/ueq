@@ -18,7 +18,7 @@ uq = UQ(model, method="conformal", alpha=0.1)
 uq.fit(X_train, y_train, X_calib, y_calib)
 
 # Predict with intervals
-pred, interval = uq.predict(X_test[:5])
+pred, interval = uq.predict(X_test[:5], return_interval=True)
 
 print("Predictions:", pred)
 print("Intervals:", interval)
