@@ -1,13 +1,14 @@
 <div align="center">
 
-# 🌀 Uncertainty Everywhere (UEQ) 
+# 🔥 Uncertainty Everywhere (UEQ) - Phoenix Edition 🔥 
 
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)]()
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache-green.svg)]()
-[![Status](https://img.shields.io/badge/status-MVP-orange)]()
+[![Status](https://img.shields.io/badge/status-Phoenix-red)]()
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
 
-**Bootstrap. Conformal. Dropout. Ensembles. Bayes.**  
+**"Rising from Research to Production"**  
+_Bootstrap. Conformal. Dropout. Ensembles. Bayes._  
 _Uncertainty for every model, everywhere._
 
 </div>
@@ -15,7 +16,9 @@ _Uncertainty for every model, everywhere._
 **A unified Python library for Uncertainty Quantification (UQ).**  
 Easily wrap your machine learning models and get predictions **with confidence intervals, coverage guarantees, or Bayesian-style uncertainty** - all from one interface.
 
-**🚀 NEW in v1.0.1: Production-Ready Features!**
+**🔥 UEQ v1.0.1 Phoenix - "Rising from Research to Production" 🔥**
+
+**🚀 NEW in Phoenix: Production-Ready Features!**
 - **Auto-detection**: Automatically detects model types and selects optimal UQ methods
 - **Cross-framework ensembles**: Combine models from different frameworks (sklearn + PyTorch)
 - **Model monitoring**: Real-time drift detection and performance monitoring
