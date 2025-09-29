@@ -15,10 +15,12 @@ _Uncertainty for every model, everywhere._
 **A unified Python library for Uncertainty Quantification (UQ).**  
 Easily wrap your machine learning models and get predictions **with confidence intervals, coverage guarantees, or Bayesian-style uncertainty** - all from one interface.
 
-**🚀 NEW in v1.0.1: Auto-detection and Cross-Framework Ensembles!**
-- Automatically detects model types and selects optimal UQ methods
-- Combine models from different frameworks (sklearn + PyTorch) in unified ensembles
-- Zero-configuration uncertainty quantification: `UQ(model)` just works!
+**🚀 NEW in v1.0.1: Production-Ready Features!**
+- **Auto-detection**: Automatically detects model types and selects optimal UQ methods
+- **Cross-framework ensembles**: Combine models from different frameworks (sklearn + PyTorch)
+- **Model monitoring**: Real-time drift detection and performance monitoring
+- **Performance optimization**: Batch processing and memory-efficient predictions
+- **Zero-configuration**: `UQ(model)` just works!
 
 ##  Features
 
@@ -212,10 +214,41 @@ print("Cross-framework predictions:", mean_pred)
 print("Unified uncertainty intervals:", intervals)
 ```
 
+### 7. Production Features (NEW!)
+
+```python
+from ueq import UQ, UQMonitor, BatchProcessor
+
+# Model monitoring and drift detection
+uq = UQ(model)
+monitor = UQMonitor(baseline_data=X_train, baseline_uncertainty=baseline_unc)
+
+# Monitor new data
+results = uq.monitor(X_new, y_new)
+print(f"Drift score: {results['drift_score']:.3f}")
+print(f"Alerts: {len(results['alerts'])}")
+
+# Performance optimization for large datasets
+batch_processor = BatchProcessor(batch_size=1000, n_jobs=4)
+predictions = uq.predict_large_dataset(X_large, batch_size=1000)
+
+# Production deployment
+class ProductionUQService:
+    def __init__(self, model):
+        self.uq = UQ(model)
+        self.monitor = UQMonitor()
+    
+    def predict(self, X):
+        predictions, uncertainty = self.uq.predict(X, return_interval=True)
+        monitoring = self.monitor.monitor(predictions, uncertainty)
+        return predictions, uncertainty, monitoring
+```
+
 ##  Roadmap
 
 * [x] **Auto-detection system** - Automatically select optimal UQ methods
 * [x] **Cross-framework ensembles** - Combine models from different frameworks
+* [x] **Production features** - Model monitoring, drift detection, performance optimization
 * [x] **Enhanced visualization** - Calibration plots and coverage curves
 * [ ] Additional UQ methods (Quantile Regression, Gaussian Processes, Normalizing Flows)
 * [ ] TensorFlow/Keras support

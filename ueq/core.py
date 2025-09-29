@@ -214,3 +214,98 @@ class UQ:
                 "method": self.method,
                 "model_class": type(self.model).__name__ if self.model is not None else None
             }
+
+    def predict_large_dataset(self, X, batch_size=1000, return_interval=True):
+        """
+        Memory-efficient prediction for large datasets.
+        
+        Parameters
+        ----------
+        X : array-like
+            Input data
+        batch_size : int, default=1000
+            Batch size for processing
+        return_interval : bool, default=True
+            Whether to return uncertainty intervals
+            
+        Returns
+        -------
+        tuple or array
+            Predictions and optionally uncertainty estimates
+        """
+        from .utils.performance import memory_efficient_predict
+        return memory_efficient_predict(
+            self, X, batch_size=batch_size, 
+            return_uncertainty=return_interval
+        )
+
+    def monitor(self, X, y=None, baseline_data=None, baseline_uncertainty=None):
+        """
+        Monitor model performance and uncertainty drift.
+        
+        Parameters
+        ----------
+        X : array-like
+            Input data
+        y : array-like, optional
+            True target values
+        baseline_data : array-like, optional
+            Baseline data for drift detection
+        baseline_uncertainty : array-like, optional
+            Baseline uncertainty estimates
+            
+        Returns
+        -------
+        dict
+            Monitoring results
+        """
+        from .utils.monitoring import UQMonitor
+        
+        # Get predictions
+        try:
+            predictions, uncertainty = self.predict(X, return_interval=True)
+        except:
+            predictions = self.predict(X, return_interval=False)
+            uncertainty = None
+        
+        # Create monitor
+        monitor = UQMonitor(
+            baseline_data=baseline_data,
+            baseline_uncertainty=baseline_uncertainty
+        )
+        
+        # Monitor
+        results = monitor.monitor(predictions, uncertainty)
+        
+        return results
+
+    def benchmark(self, X, y=None, methods=None):
+        """
+        Benchmark model performance.
+        
+        Parameters
+        ----------
+        X : array-like
+            Input data
+        y : array-like, optional
+            True target values
+        methods : dict, optional
+            Additional methods to benchmark
+            
+        Returns
+        -------
+        dict
+            Benchmark results
+        """
+        from .utils.performance import PerformanceProfiler
+        
+        profiler = PerformanceProfiler()
+        
+        # Default methods
+        if methods is None:
+            methods = {
+                'predict': lambda x: self.predict(x, return_interval=False),
+                'predict_with_uncertainty': lambda x: self.predict(x, return_interval=True)
+            }
+        
+        return profiler.benchmark_methods(methods, X)
