@@ -28,8 +28,17 @@ class UQ:
 
     def __init__(self, model=None, method="auto", **kwargs):
         self.model = model
-        self.model_type = self._detect_model_type(model)
-        self.method = self._auto_select_method(self.model_type, method.lower())
+        self.models = None  # For multi-model ensembles
+        
+        # Check if model is a list (cross-framework ensemble)
+        if isinstance(model, (list, tuple)):
+            self.models = model
+            self.model_type = "cross_framework_ensemble"
+            self.method = "cross_ensemble"
+        else:
+            self.model_type = self._detect_model_type(model)
+            self.method = self._auto_select_method(self.model_type, method.lower())
+        
         self.uq_model = self._init_method(**kwargs)
 
     def _detect_model_type(self, model):
@@ -137,6 +146,10 @@ class UQ:
             from .methods.bayesian_linear import BayesianLinearUQ
             return BayesianLinearUQ(**kwargs)
 
+        elif self.method == "cross_ensemble":
+            from .methods.cross_ensemble import CrossFrameworkEnsembleUQ
+            return CrossFrameworkEnsembleUQ(self.models, **kwargs)
+
         else:
             raise ValueError(f"Unknown UQ method: {self.method}")
 
@@ -187,8 +200,17 @@ class UQ:
         dict
             Dictionary with model_type, method, and model_class information
         """
-        return {
-            "model_type": self.model_type,
-            "method": self.method,
-            "model_class": type(self.model).__name__ if self.model is not None else None
-        }
+        if self.model_type == "cross_framework_ensemble":
+            return {
+                "model_type": self.model_type,
+                "method": self.method,
+                "n_models": len(self.models),
+                "model_classes": [type(m).__name__ for m in self.models],
+                "ensemble_info": self.uq_model.get_model_info() if hasattr(self.uq_model, 'get_model_info') else None
+            }
+        else:
+            return {
+                "model_type": self.model_type,
+                "method": self.method,
+                "model_class": type(self.model).__name__ if self.model is not None else None
+            }
