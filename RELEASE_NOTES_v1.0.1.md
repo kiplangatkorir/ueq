@@ -1,6 +1,6 @@
 # UEQ v1.0.1 Release Notes
 
-**Release Date:** December 19, 2024
+**Release Date:** September 29, 2025
 
 ## 🚀 Major New Features
 
