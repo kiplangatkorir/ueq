@@ -1,5 +1,7 @@
 <div align="center">
 
+🌀
+
 # 🔥 Uncertainty Everywhere (UEQ) - Phoenix Edition 🔥 
 
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)]()
