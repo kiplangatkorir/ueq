@@ -3,7 +3,7 @@
 **UEQ** is an open-source Python library for **uncertainty estimation and quantification (UQ)** in machine learning models. The Phoenix release marks a clear shift from a research-oriented prototype to a **production-aware, extensible UQ framework**.
 
 UEQ provides a **unified interface** for uncertainty estimation across common ML frameworks, with sensible defaults that work out of the box and advanced features for deployment and monitoring.
-
+ 
 ## Motivation
 
 Modern ML systems increasingly operate in high-stakes, non-stationary environments. Point predictions alone are insufficient.
