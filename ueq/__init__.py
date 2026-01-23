@@ -20,6 +20,7 @@ from .utils.visualization import (
 )
 from .utils.monitoring import UQMonitor, PerformanceMonitor, detect_uncertainty_drift
 from .utils.performance import BatchProcessor, PerformanceProfiler, optimize_batch_size, memory_efficient_predict
+from .utils.recalibration import DriftAwareRecalibrator, UncertaintyInflator
 from .benchmarks import (
     make_synthetic_regression,
     make_heteroscedastic_data,
@@ -52,6 +53,8 @@ __all__ = [
     "PerformanceProfiler",
     "optimize_batch_size",
     "memory_efficient_predict",
+    "DriftAwareRecalibrator",
+    "UncertaintyInflator",
     "make_synthetic_regression",
     "make_heteroscedastic_data",
     "make_concept_drift_data",
