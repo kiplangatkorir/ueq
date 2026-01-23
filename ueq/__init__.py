@@ -20,6 +20,12 @@ from .utils.visualization import (
 )
 from .utils.monitoring import UQMonitor, PerformanceMonitor, detect_uncertainty_drift
 from .utils.performance import BatchProcessor, PerformanceProfiler, optimize_batch_size, memory_efficient_predict
+from .benchmarks import (
+    make_synthetic_regression,
+    make_heteroscedastic_data,
+    make_concept_drift_data,
+    make_covariate_shift_data
+)
 
 __version__ = "1.0.2"
 __all__ = [
@@ -45,5 +51,9 @@ __all__ = [
     "BatchProcessor",
     "PerformanceProfiler",
     "optimize_batch_size",
-    "memory_efficient_predict"
+    "memory_efficient_predict",
+    "make_synthetic_regression",
+    "make_heteroscedastic_data",
+    "make_concept_drift_data",
+    "make_covariate_shift_data"
 ]
