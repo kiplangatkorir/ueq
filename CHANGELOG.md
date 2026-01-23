@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-01-23 - "Evaluation & Diagnostics" 📊
+**"Production-Ready UQ Assessment"**
+
+### Added
+- **Standardized UQ evaluation metrics** (Issue #9) - Complete suite of 7 metrics for uncertainty quality assessment:
+  - `interval_score()` - Proper scoring rule for prediction intervals
+  - `interval_width()` - Alias for sharpness for clarity
+  - `miscoverage_rate()` - Complement of coverage
+  - `evaluate_uncertainty()` - Unified function to compute all metrics at once
+- **Reliability and calibration diagnostics** (Issue #10):
+  - `check_calibration()` - Automated calibration checking with warnings
+  - Detects undercoverage, overcoverage, uncertainty collapse, and constant intervals
+  - `plot_reliability_diagram()` - Visual calibration assessment with dual plots
+  - `plot_coverage_vs_confidence()` - Diagnostic plot for interval width vs coverage
+- **Enhanced prediction interval visualizations** (Issue #17):
+  - `plot_intervals()` - Comprehensive interval plotting with customization
+  - Support for true values overlay and custom styling
+  - Completed and fixed incomplete `visualization.py` file
+- **Comprehensive documentation**:
+  - New `ENHANCED_FEATURES.md` guide with complete API reference
+  - Example notebook demonstrating all new features
+  - 23 new unit tests (100% coverage of new features)
+
+### Changed
+- Enhanced `ueq.utils` module to export all new functions
+- Main package `__init__.py` now exports visualization and diagnostic functions
+- Improved error messages in metric evaluation
+
+### Fixed
+- Completed incomplete `visualization.py` (was cut off at line 75)
+- Fixed calibration curve function that was broken
+
+### Technical Details
+- Added type hints to metrics module
+- All new functions include comprehensive docstrings
+- Total of 40 tests now passing (up from 17)
+- Backward compatible - all existing code continues to work
+
 ## [1.0.1] - 2025-09-29 - "Phoenix" 🔥
 **"Rising from Research to Production"**
 
