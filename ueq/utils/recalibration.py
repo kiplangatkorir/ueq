@@ -148,8 +148,10 @@ class DriftAwareRecalibrator:
         # Get predictions before update
         preds, intervals = self.uq_method.predict(X_new, return_interval=True)
         
-        # Compute empirical coverage
-        covered = np.array([(y >= l and y <= u) for y, (l, u) in zip(y_new, intervals)])
+        # Compute empirical coverage (vectorized)
+        lower_bounds = np.array([l for l, u in intervals])
+        upper_bounds = np.array([u for l, u in intervals])
+        covered = (y_new >= lower_bounds) & (y_new <= upper_bounds)
         empirical_coverage = covered.mean()
         self.coverage_history.append(empirical_coverage)
         
@@ -184,8 +186,10 @@ class DriftAwareRecalibrator:
             Drift score (higher means more drift).
         """
         if self.drift_detector is not None:
-            # Use custom drift detector
-            uncertainty = np.array([u - l for l, u in intervals])
+            # Use custom drift detector - extract uncertainty efficiently
+            lower = np.array([l for l, u in intervals])
+            upper = np.array([u for l, u in intervals])
+            uncertainty = upper - lower
             return self.drift_detector(X, uncertainty)
         else:
             # Built-in uncertainty-based drift detection
@@ -208,7 +212,10 @@ class DriftAwareRecalibrator:
     
     def _compute_uncertainty_stats(self, intervals) -> Dict[str, float]:
         """Compute statistics of uncertainty estimates."""
-        widths = np.array([u - l for l, u in intervals])
+        # Extract bounds efficiently
+        lower = np.array([l for l, u in intervals])
+        upper = np.array([u for l, u in intervals])
+        widths = upper - lower
         
         return {
             'mean': np.mean(widths),
@@ -244,7 +251,8 @@ class DriftAwareRecalibrator:
         
         # Check coverage violation
         if len(self.coverage_history) >= self.coverage_check_interval:
-            recent_coverage = np.mean(list(self.coverage_history)[-self.coverage_check_interval:])
+            # Efficient mean of recent coverage without list conversion
+            recent_coverage = np.mean(np.array(self.coverage_history)[-self.coverage_check_interval:])
             if abs(recent_coverage - self.target_coverage) > self.coverage_tolerance:
                 return True
         
@@ -311,8 +319,11 @@ class DriftAwareRecalibrator:
                 'status': 'no_recalibrations_yet'
             }
         
-        recent_drift = np.mean(list(self.drift_scores)[-10:]) if len(self.drift_scores) >= 10 else 0
-        recent_coverage = np.mean(list(self.coverage_history)[-10:]) if len(self.coverage_history) >= 10 else 0
+        # Efficient mean without list conversion
+        recent_drift = (np.mean(np.array(self.drift_scores)[-10:]) 
+                       if len(self.drift_scores) >= 10 else 0)
+        recent_coverage = (np.mean(np.array(self.coverage_history)[-10:]) 
+                          if len(self.coverage_history) >= 10 else 0)
         
         return {
             'total_recalibrations': self.total_recalibrations,
@@ -369,7 +380,10 @@ class UncertaintyInflator:
         # Validate strategy
         valid_strategies = ["multiplicative", "additive", "adaptive"]
         if inflation_strategy not in valid_strategies:
-            raise ValueError(f"inflation_strategy must be one of {valid_strategies}")
+            raise ValueError(
+                f"Invalid inflation_strategy '{inflation_strategy}'. "
+                f"Must be one of {valid_strategies}"
+            )
         
         # Track inflation history
         self.inflation_history = []
