@@ -15,10 +15,18 @@ from .utils.visualization import (
     plot_reliability_diagram,
     plot_coverage_vs_confidence,
     plot_predictions_with_intervals,
-    plot_calibration_curve
+    plot_calibration_curve,
+    plot_uncertainty_timeline
 )
 from .utils.monitoring import UQMonitor, PerformanceMonitor, detect_uncertainty_drift
 from .utils.performance import BatchProcessor, PerformanceProfiler, optimize_batch_size, memory_efficient_predict
+from .utils.recalibration import DriftAwareRecalibrator, UncertaintyInflator
+from .benchmarks import (
+    make_synthetic_regression,
+    make_heteroscedastic_data,
+    make_concept_drift_data,
+    make_covariate_shift_data
+)
 
 __version__ = "1.0.2"
 __all__ = [
@@ -37,11 +45,18 @@ __all__ = [
     "plot_coverage_vs_confidence",
     "plot_predictions_with_intervals",
     "plot_calibration_curve",
+    "plot_uncertainty_timeline",
     "UQMonitor",
     "PerformanceMonitor",
     "detect_uncertainty_drift",
     "BatchProcessor",
     "PerformanceProfiler",
     "optimize_batch_size",
-    "memory_efficient_predict"
+    "memory_efficient_predict",
+    "DriftAwareRecalibrator",
+    "UncertaintyInflator",
+    "make_synthetic_regression",
+    "make_heteroscedastic_data",
+    "make_concept_drift_data",
+    "make_covariate_shift_data"
 ]

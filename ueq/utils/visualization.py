@@ -283,3 +283,124 @@ def plot_coverage_vs_confidence(y_true, intervals, n_bins=20,
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
+
+
+def plot_uncertainty_timeline(timestamps, uncertainties, y_true=None, y_pred=None,
+                              drift_scores=None, title="Uncertainty Over Time",
+                              figsize=(14, 8), window_size=None):
+    """
+    Plot uncertainty dynamics over time with optional drift signals.
+    
+    Visualizes how uncertainty evolves in production systems, helping detect
+    temporal degradation or instability in confidence estimates.
+    
+    Parameters
+    ----------
+    timestamps : array-like, shape (n_samples,)
+        Time indices or timestamps for each prediction.
+    uncertainties : array-like, shape (n_samples,)
+        Uncertainty measures (e.g., interval widths, standard deviations).
+        For coverage calculation, these are assumed to be half-widths of
+        symmetric intervals: [pred - unc, pred + unc].
+    y_true : array-like, shape (n_samples,), optional
+        True target values.
+    y_pred : array-like, shape (n_samples,), optional
+        Predicted values.
+    drift_scores : array-like, shape (n_samples,), optional
+        Drift detection scores to overlay on the plot.
+    title : str
+        Plot title.
+    figsize : tuple
+        Figure size.
+    window_size : int, optional
+        Rolling window size for smoothed uncertainty trends.
+    
+    Notes
+    -----
+    When calculating coverage, this function assumes symmetric prediction
+    intervals of the form [y_pred[i] - uncertainties[i], y_pred[i] + uncertainties[i]].
+    If your uncertainties are not half-widths, consider preprocessing them.
+    """
+    timestamps = np.asarray(timestamps)
+    uncertainties = np.asarray(uncertainties)
+    
+    n_plots = 2 if drift_scores is not None else 1
+    if y_true is not None and y_pred is not None:
+        n_plots += 1
+    
+    fig, axes = plt.subplots(n_plots, 1, figsize=figsize, sharex=True)
+    if n_plots == 1:
+        axes = [axes]
+    
+    ax_idx = 0
+    
+    # Plot 1: Uncertainty over time
+    axes[ax_idx].plot(timestamps, uncertainties, alpha=0.6, linewidth=1, label='Uncertainty')
+    
+    # Add rolling average if window_size specified
+    if window_size is not None and window_size > 1:
+        rolling_mean = np.convolve(uncertainties, np.ones(window_size)/window_size, mode='valid')
+        rolling_timestamps = timestamps[window_size-1:]
+        axes[ax_idx].plot(rolling_timestamps, rolling_mean, 'r-', linewidth=2, 
+                         label=f'Rolling mean (window={window_size})')
+    
+    axes[ax_idx].axhline(y=np.mean(uncertainties), color='k', linestyle='--', 
+                         linewidth=1, alpha=0.5, label='Mean uncertainty')
+    axes[ax_idx].fill_between(timestamps, 
+                              np.mean(uncertainties) - np.std(uncertainties),
+                              np.mean(uncertainties) + np.std(uncertainties),
+                              alpha=0.2, color='gray', label='±1 std')
+    axes[ax_idx].set_ylabel('Uncertainty', fontsize=12)
+    axes[ax_idx].set_title('Uncertainty Dynamics', fontsize=14)
+    axes[ax_idx].legend(loc='best')
+    axes[ax_idx].grid(True, alpha=0.3)
+    ax_idx += 1
+    
+    # Plot 2: Coverage over time (if true values provided)
+    if y_true is not None and y_pred is not None:
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+        
+        # Compute rolling coverage (assuming uncertainties are interval widths)
+        if window_size is None:
+            window_size = max(20, len(timestamps) // 20)
+        
+        rolling_coverage = []
+        rolling_times = []
+        
+        for i in range(window_size, len(timestamps)):
+            window_start = i - window_size
+            # Assuming symmetric intervals: [pred - unc, pred + unc]
+            window_covered = np.abs(y_true[window_start:i] - y_pred[window_start:i]) <= uncertainties[window_start:i]
+            rolling_coverage.append(window_covered.mean())
+            rolling_times.append(timestamps[i])
+        
+        axes[ax_idx].plot(rolling_times, rolling_coverage, 'b-', linewidth=2, label='Rolling coverage')
+        axes[ax_idx].axhline(y=0.9, color='g', linestyle='--', linewidth=1.5, 
+                            alpha=0.7, label='Target (90%)')
+        axes[ax_idx].axhline(y=0.95, color='orange', linestyle='--', linewidth=1.5, 
+                            alpha=0.7, label='Target (95%)')
+        axes[ax_idx].set_ylabel('Coverage', fontsize=12)
+        axes[ax_idx].set_title(f'Rolling Coverage (window={window_size})', fontsize=14)
+        axes[ax_idx].legend(loc='best')
+        axes[ax_idx].grid(True, alpha=0.3)
+        axes[ax_idx].set_ylim([0, 1.05])
+        ax_idx += 1
+    
+    # Plot 3: Drift scores overlay (if provided)
+    if drift_scores is not None:
+        drift_scores = np.asarray(drift_scores)
+        axes[ax_idx].plot(timestamps, drift_scores, 'r-', linewidth=1.5, label='Drift score')
+        axes[ax_idx].axhline(y=0.1, color='orange', linestyle='--', linewidth=1, 
+                            alpha=0.7, label='Warning threshold')
+        axes[ax_idx].axhline(y=0.2, color='red', linestyle='--', linewidth=1, 
+                            alpha=0.7, label='Critical threshold')
+        axes[ax_idx].set_ylabel('Drift Score', fontsize=12)
+        axes[ax_idx].set_title('Distribution Drift Signals', fontsize=14)
+        axes[ax_idx].legend(loc='best')
+        axes[ax_idx].grid(True, alpha=0.3)
+    
+    axes[-1].set_xlabel('Time / Sample Index', fontsize=12)
+    plt.suptitle(title, fontsize=16, y=0.995)
+    plt.tight_layout()
+    plt.show()
