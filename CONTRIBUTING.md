@@ -6,6 +6,20 @@ UEQ is an open-source project focused on **practical, production-ready, and rese
 
 This document explains **how to get started, what kinds of contributions we are looking for, and how to work effectively with the project**.
 
+## Contribution Templates
+
+To make contributing easier, we provide templates for common contribution types:
+
+- **New UQ Methods**: See `templates/uq_method/TEMPLATE.md`
+- **New Benchmarks**: See `templates/benchmark/TEMPLATE.md`
+- **New Metrics**: See `templates/metric/TEMPLATE.md`
+
+These templates include:
+- Code structure and best practices
+- Documentation requirements
+- Testing guidelines
+- Examples and common patterns
+
 ## What This Is (and Is Not)
 
 **UEQ contributions are:**
