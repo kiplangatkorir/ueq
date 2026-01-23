@@ -10,6 +10,9 @@ from .utils.metrics import (
     evaluate_uncertainty,
     check_calibration
 )
+
+# Alias for more intuitive API as specified in Issue #9
+evaluate = evaluate_uncertainty
 from .utils.visualization import (
     plot_intervals,
     plot_reliability_diagram,
@@ -39,6 +42,7 @@ __all__ = [
     "interval_score",
     "miscoverage_rate",
     "evaluate_uncertainty",
+    "evaluate",  # Alias for evaluate_uncertainty (Issue #9)
     "check_calibration",
     "plot_intervals",
     "plot_reliability_diagram",
