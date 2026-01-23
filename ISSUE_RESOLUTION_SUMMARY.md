@@ -2,9 +2,9 @@
 
 ## Overview
 
-This PR successfully addresses **9 out of 21** open issues in the UEQ repository. The completed issues significantly enhance the library's functionality in conformal prediction, visualization, benchmarking, and contributor experience.
+This PR successfully addresses **12 out of 21** open issues in the UEQ repository. The completed issues significantly enhance the library's functionality in conformal prediction, visualization, benchmarking, production monitoring, and contributor experience.
 
-## ✅ Completed Issues (9)
+## ✅ Completed Issues (12)
 
 ### Already Implemented (Found Existing - 3 issues)
 These issues were already implemented in the codebase but not closed:
@@ -26,7 +26,7 @@ These issues were already implemented in the codebase but not closed:
    - Features: `plot_intervals()`, `plot_reliability_diagram()`, `plot_coverage_vs_confidence()`
    - `plot_predictions_with_intervals()`, `plot_calibration_curve()`
 
-### Newly Implemented (6 issues)
+### Newly Implemented (9 issues)
 
 4. **Issue #6: Support Multiple Nonconformity Scores** ✅
    - Location: `ueq/methods/conformal.py`
@@ -84,26 +84,64 @@ These issues were already implemented in the codebase but not closed:
    - Reduces maintainer review burden
    - Helps contributors follow best practices
 
+10. **Issue #11: Drift-Aware Recalibration Module** ✅
+    - Location: `ueq/utils/recalibration.py`
+    - New class: `DriftAwareRecalibrator`
+    - Features:
+      - Automatic recalibration triggers based on drift and coverage
+      - Integration with drift detection signals
+      - Rolling/sliding calibration windows
+      - Comprehensive recalibration history tracking
+      - Works with online conformal prediction methods
+
+11. **Issue #12: Uncertainty Inflation Under Detected Drift** ✅
+    - Location: `ueq/utils/recalibration.py`
+    - New class: `UncertaintyInflator`
+    - Features:
+      - Multiple inflation strategies (multiplicative, additive, adaptive)
+      - Drift-aware uncertainty scaling
+      - Prevents overconfidence under OoD
+      - Compatible with all UQ methods
+      - Configurable max inflation and thresholds
+
+12. **Issue #27: Testing and Community Guidelines** ✅
+    - Location: `TESTING_GUIDE.md` and `COMMUNITY_GUIDELINES.md`
+    - Comprehensive testing documentation:
+      - Installation and setup instructions
+      - How to write tests for UQ methods
+      - Coverage testing guidelines
+      - CI/CD integration examples
+    - Community guidelines:
+      - Code of conduct
+      - Contribution standards
+      - Review process
+      - Recognition system
+
 ## 📊 Impact Summary
 
 ### Code Additions
-- **New Files**: 5
+- **New Files**: 8
   - `ueq/benchmarks/synthetic.py` (11KB)
   - `ueq/benchmarks/__init__.py`
   - `ueq/methods/online_conformal.py` (7.4KB)
+  - `ueq/utils/recalibration.py` (19KB)
+  - `TESTING_GUIDE.md` (9.7KB)
+  - `COMMUNITY_GUIDELINES.md` (8.3KB)
   - 3 template files
   
-- **Enhanced Files**: 4
+- **Enhanced Files**: 5
   - `ueq/methods/conformal.py` (extended with nonconformity scores and class-conditional)
   - `ueq/utils/visualization.py` (added timeline visualization)
   - `ueq/__init__.py` (exported new features)
   - `CONTRIBUTING.md` (added template references)
+  - `ISSUE_RESOLUTION_SUMMARY.md` (progress tracking)
 
 ### API Extensions
 - New exports in main API:
   - `make_synthetic_regression`, `make_heteroscedastic_data`
   - `make_concept_drift_data`, `make_covariate_shift_data`
   - `plot_uncertainty_timeline`
+  - `DriftAwareRecalibrator`, `UncertaintyInflator`
 - New classes available:
   - `OnlineConformalUQ`, `AdaptiveConformalUQ`
 
@@ -113,16 +151,11 @@ These issues were already implemented in the codebase but not closed:
 - ✅ CodeQL security scan - 0 vulnerabilities found
 - ✅ No breaking changes to existing API
 
-## 🔄 Remaining Issues (12)
+## 🔄 Remaining Issues (9)
 
-The remaining issues fall into four categories:
+The remaining issues fall into three categories:
 
-### 1. Integration Issues (2)
-Require integration with existing monitoring infrastructure:
-- **Issue #11**: Drift-aware recalibration module
-- **Issue #12**: Uncertainty inflation under detected drift
-
-### 2. Research Implementation (7)
+### 1. Research Implementation (6)
 Complex research topics requiring significant implementation:
 - **Issue #13**: Evidential regression (Normal–Inverse–Gamma)
 - **Issue #14**: Evidential classification (Dirichlet-based)
@@ -132,19 +165,16 @@ Complex research topics requiring significant implementation:
 - **Issue #24**: Structured output uncertainty (sequences & detection)
 - **Issue #25**: Online/continual uncertainty quantification
 
-### 3. Infrastructure (2)
+### 2. Infrastructure (2)
 Major architectural work:
 - **Issue #16**: Add real-world UQ benchmarks (requires data curation)
 - **Issue #21**: Design plugin architecture for UQ methods
-
-### 4. Documentation (1)
-- **Issue #27**: Testing and community guidelines
 
 ## 🎯 Recommendations
 
 ### Priority 1: Close Completed Issues
 The following issues should be closed as they are now fully implemented:
-- Issue #5, #6, #8, #9, #10, #15, #17, #18, #22
+- Issues #5, #6, #8, #9, #10, #11, #12, #15, #17, #18, #22, #27
 
 ### Priority 2: Research Implementations
 The research issues (#13, #14, #19, #20, #23, #24, #25) would benefit from:
@@ -152,12 +182,11 @@ The research issues (#13, #14, #19, #20, #23, #24, #25) would benefit from:
 2. Creating prototype implementations
 3. Academic collaboration for validation
 
-### Priority 3: Integration
-Issues #11 and #12 can be addressed by:
-1. Integrating `AdaptiveConformalUQ` with existing drift detection
-2. Adding uncertainty inflation factors to the monitoring module
-
-### Priority 4: Infrastructure
+These are complex research topics that require:
+- Deep understanding of Bayesian methods
+- Careful implementation of evidential deep learning
+- Handling of non-i.i.d. data assumptions
+- Structured output modeling
 Issues #16 and #21 require:
 1. Community involvement for real-world benchmark datasets
 2. Careful API design for plugin architecture
@@ -191,11 +220,12 @@ CodeQL analysis found **0 security vulnerabilities** in all new code.
 
 ## 🎉 Conclusion
 
-This PR makes significant progress on the UEQ issue backlog, completing 9 critical issues that enhance:
-- Conformal prediction capabilities (3 issues)
+This PR makes significant progress on the UEQ issue backlog, completing **12 critical issues** that enhance:
+- Conformal prediction capabilities (4 issues)
 - Visualization and monitoring (2 issues)  
 - Benchmarking infrastructure (1 issue)
-- Contributor experience (1 issue)
-- Documentation of existing features (3 issues)
+- Production readiness (2 issues)
+- Contributor experience (2 issues)
+- Documentation (1 issue)
 
-The remaining 12 issues are acknowledged and categorized for future work, with clear recommendations for how to approach each category.
+The remaining 9 issues are acknowledged and categorized for future work, with clear recommendations for how to approach each category.
