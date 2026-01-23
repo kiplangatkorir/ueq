@@ -218,8 +218,9 @@ def evaluate_uncertainty(y_true, y_pred, intervals,
         Prediction intervals [(lower, upper), ...].
     metrics : list of str, optional
         Metrics to compute. If None, computes all available metrics.
-        Available: ['coverage', 'sharpness', 'interval_width', 'ece', 'mce', 
-                   'interval_score', 'miscoverage']
+        Available: ['coverage', 'sharpness', 'interval_width', 'ece', 'calibration', 
+                   'mce', 'interval_score', 'miscoverage']
+        Note: 'calibration' is an alias for 'ece' (Expected Calibration Error).
     alpha : float
         Significance level for interval score (default: 0.05 for 95% intervals).
     n_bins : int
@@ -239,6 +240,7 @@ def evaluate_uncertainty(y_true, y_pred, intervals,
         'sharpness': lambda: sharpness(intervals),
         'interval_width': lambda: interval_width(intervals),
         'ece': lambda: expected_calibration_error(y_true, intervals, n_bins),
+        'calibration': lambda: expected_calibration_error(y_true, intervals, n_bins),  # Alias for ece
         'mce': lambda: maximum_calibration_error(y_true, intervals, n_bins),
         'interval_score': lambda: interval_score(y_true, intervals, alpha),
         'miscoverage': lambda: miscoverage_rate(y_true, intervals),
