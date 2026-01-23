@@ -15,7 +15,8 @@ from .utils.visualization import (
     plot_reliability_diagram,
     plot_coverage_vs_confidence,
     plot_predictions_with_intervals,
-    plot_calibration_curve
+    plot_calibration_curve,
+    plot_uncertainty_timeline
 )
 from .utils.monitoring import UQMonitor, PerformanceMonitor, detect_uncertainty_drift
 from .utils.performance import BatchProcessor, PerformanceProfiler, optimize_batch_size, memory_efficient_predict
@@ -37,6 +38,7 @@ __all__ = [
     "plot_coverage_vs_confidence",
     "plot_predictions_with_intervals",
     "plot_calibration_curve",
+    "plot_uncertainty_timeline",
     "UQMonitor",
     "PerformanceMonitor",
     "detect_uncertainty_drift",
