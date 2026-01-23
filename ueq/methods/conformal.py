@@ -64,10 +64,10 @@ class ConformalUQ:
                 k_lower = int(np.floor((self.alpha/2) * (n + 1)))
                 residuals = y_calib - preds
                 sorted_residuals = np.sort(residuals)
-                self.q = sorted_residuals[min(k_upper, n) - 1]  # upper quantile
-                self.q_lower = sorted_residuals[max(k_lower, 0)]  # lower quantile
+                self.q = sorted_residuals[min(k_upper - 1, n - 1)]  # upper quantile (fix indexing)
+                self.q_lower = sorted_residuals[max(k_lower - 1, 0)]  # lower quantile (fix indexing)
             else:
-                self.q = np.sort(scores)[min(k, n) - 1]
+                self.q = np.sort(scores)[min(k - 1, n - 1)]  # fix indexing
 
         elif self.task_type == "classification":
             probas = self.base_model.predict_proba(X_calib)
@@ -173,7 +173,12 @@ class ConformalUQ:
                     # For each sample, check which classes to include
                     # Use the max probability class to determine which threshold to use
                     pred_class = np.argmax(p)
-                    threshold = self.q_per_class.get(pred_class, self.q if self.q else 0.5)
+                    threshold = self.q_per_class.get(pred_class)
+                    
+                    # If no class-specific threshold, fall back to global mean
+                    if threshold is None:
+                        threshold = np.mean(list(self.q_per_class.values()))
+                    
                     pred_sets.append(set(np.where(p >= 1 - threshold)[0]))
             else:
                 # Global threshold

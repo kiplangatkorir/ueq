@@ -300,6 +300,8 @@ def plot_uncertainty_timeline(timestamps, uncertainties, y_true=None, y_pred=Non
         Time indices or timestamps for each prediction.
     uncertainties : array-like, shape (n_samples,)
         Uncertainty measures (e.g., interval widths, standard deviations).
+        For coverage calculation, these are assumed to be half-widths of
+        symmetric intervals: [pred - unc, pred + unc].
     y_true : array-like, shape (n_samples,), optional
         True target values.
     y_pred : array-like, shape (n_samples,), optional
@@ -312,6 +314,12 @@ def plot_uncertainty_timeline(timestamps, uncertainties, y_true=None, y_pred=Non
         Figure size.
     window_size : int, optional
         Rolling window size for smoothed uncertainty trends.
+    
+    Notes
+    -----
+    When calculating coverage, this function assumes symmetric prediction
+    intervals of the form [y_pred[i] - uncertainties[i], y_pred[i] + uncertainties[i]].
+    If your uncertainties are not half-widths, consider preprocessing them.
     """
     timestamps = np.asarray(timestamps)
     uncertainties = np.asarray(uncertainties)

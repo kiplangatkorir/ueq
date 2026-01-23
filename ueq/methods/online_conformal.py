@@ -116,7 +116,8 @@ class OnlineConformalUQ:
         scores_array = np.array(self.calib_scores)
         n = len(scores_array)
         k = int(np.ceil((1 - self.alpha) * (n + 1)))
-        self.q = np.sort(scores_array)[min(k, n) - 1]
+        # Fix: use min(k - 1, n - 1) for proper indexing
+        self.q = np.sort(scores_array)[min(k - 1, n - 1)]
     
     def predict(self, X, return_interval=False):
         """
