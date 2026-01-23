@@ -18,15 +18,21 @@ class ConformalUQ:
     nonconformity : str, default="residual"
         Nonconformity score type. For regression: "residual", "quantile", "normalized".
         For classification: "margin", "inverse_probability".
+    class_conditional : bool, default=False
+        If True, performs class-conditional calibration for classification tasks.
+        Calibrates separately per class to ensure valid coverage within each class.
     """
 
-    def __init__(self, model, alpha=0.05, task_type="regression", nonconformity="residual"):
+    def __init__(self, model, alpha=0.05, task_type="regression", nonconformity="residual", 
+                 class_conditional=False):
         self.base_model = model
         self.alpha = alpha
         self.task_type = task_type
         self.nonconformity = nonconformity
+        self.class_conditional = class_conditional
         self.q = None
         self.q_lower = None  # For quantile-based methods
+        self.q_per_class = {}  # For class-conditional calibration
         self.is_fitted = False
         self._validate_nonconformity()
     
@@ -65,10 +71,34 @@ class ConformalUQ:
 
         elif self.task_type == "classification":
             probas = self.base_model.predict_proba(X_calib)
-            scores = self._compute_classification_scores(y_calib, probas)
-            n = len(scores)
-            k = int(np.ceil((1 - self.alpha) * (n + 1)))
-            self.q = np.sort(scores)[min(k, n) - 1]
+            
+            if self.class_conditional:
+                # Calibrate separately for each class
+                unique_classes = np.unique(y_calib)
+                min_samples = 10  # Minimum samples per class for calibration
+                
+                for cls in unique_classes:
+                    cls_mask = (y_calib == cls)
+                    n_cls = cls_mask.sum()
+                    
+                    if n_cls < min_samples:
+                        # Fallback to global calibration for rare classes
+                        scores_all = self._compute_classification_scores(y_calib, probas)
+                        k_all = int(np.ceil((1 - self.alpha) * (len(scores_all) + 1)))
+                        self.q_per_class[cls] = np.sort(scores_all)[min(k_all, len(scores_all)) - 1]
+                    else:
+                        # Class-specific calibration
+                        scores_cls = self._compute_classification_scores(
+                            y_calib[cls_mask], probas[cls_mask]
+                        )
+                        k_cls = int(np.ceil((1 - self.alpha) * (n_cls + 1)))
+                        self.q_per_class[cls] = np.sort(scores_cls)[min(k_cls, n_cls) - 1]
+            else:
+                # Global calibration
+                scores = self._compute_classification_scores(y_calib, probas)
+                n = len(scores)
+                k = int(np.ceil((1 - self.alpha) * (n + 1)))
+                self.q = np.sort(scores)[min(k, n) - 1]
 
         else:
             raise ValueError(f"Unknown task_type: {self.task_type}")
@@ -136,13 +166,24 @@ class ConformalUQ:
         elif self.task_type == "classification":
             probas = self.base_model.predict_proba(X)
             
-            if self.nonconformity == "inverse_probability":
-                pred_sets = [set(np.where(p >= 1 - self.q)[0]) for p in probas]
-            elif self.nonconformity == "margin":
-                # For margin-based, include classes with high enough probability
-                pred_sets = [set(np.where(p >= 1 - self.q)[0]) for p in probas]
+            if self.class_conditional:
+                # Use class-specific thresholds
+                pred_sets = []
+                for p in probas:
+                    # For each sample, check which classes to include
+                    # Use the max probability class to determine which threshold to use
+                    pred_class = np.argmax(p)
+                    threshold = self.q_per_class.get(pred_class, self.q if self.q else 0.5)
+                    pred_sets.append(set(np.where(p >= 1 - threshold)[0]))
             else:
-                pred_sets = [set(np.where(p >= 1 - self.q)[0]) for p in probas]
+                # Global threshold
+                if self.nonconformity == "inverse_probability":
+                    pred_sets = [set(np.where(p >= 1 - self.q)[0]) for p in probas]
+                elif self.nonconformity == "margin":
+                    # For margin-based, include classes with high enough probability
+                    pred_sets = [set(np.where(p >= 1 - self.q)[0]) for p in probas]
+                else:
+                    pred_sets = [set(np.where(p >= 1 - self.q)[0]) for p in probas]
 
             if return_interval:
                 labels = [list(s)[0] if len(s) == 1 else -1 for s in pred_sets]
