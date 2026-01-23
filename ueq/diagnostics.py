@@ -10,6 +10,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Dict, List, Tuple, Union, Optional
 
+# Constants for calibration diagnostics
+DEFAULT_TOLERANCE = 0.05  # Default tolerance for coverage deviation
+UNCERTAINTY_COLLAPSE_THRESHOLD = 1e-6  # Threshold for detecting uncertainty collapse
+CONSTANT_INTERVALS_THRESHOLD = 1e-6  # Threshold for detecting constant intervals
+ECE_WARNING_THRESHOLD = 0.1  # ECE threshold for high calibration error
+CONFIDENCE_GAP_THRESHOLD = 0.1  # Threshold for confidence gap warnings
+OVERCONFIDENT_THRESHOLD = 0.1  # Threshold for detecting overconfident intervals
+
 
 def plot_calibration(y_true: Union[np.ndarray, List],
                      y_pred: Union[np.ndarray, List],
@@ -144,7 +152,7 @@ def _plot_regression_calibration(y_true, y_pred, uncertainty, confidence,
     
     # Detect issues
     warnings = []
-    tolerance = 0.05
+    tolerance = DEFAULT_TOLERANCE
     
     if abs(empirical_coverage - confidence) > tolerance:
         if empirical_coverage < confidence:
@@ -156,14 +164,14 @@ def _plot_regression_calibration(y_true, y_pred, uncertainty, confidence,
                 f"⚠ OVERCOVERAGE: {empirical_coverage:.1%} vs {confidence:.1%} nominal"
             )
     
-    if mean_width < 1e-6:
+    if mean_width < UNCERTAINTY_COLLAPSE_THRESHOLD:
         warnings.append("⚠ UNCERTAINTY COLLAPSE: Intervals extremely narrow")
     
-    if np.std(widths) < 1e-6:
+    if np.std(widths) < CONSTANT_INTERVALS_THRESHOLD:
         warnings.append("⚠ CONSTANT INTERVALS: All intervals have similar width")
     
     # Check for overconfident intervals
-    if empirical_coverage < confidence - 0.1:
+    if empirical_coverage < confidence - OVERCONFIDENT_THRESHOLD:
         warnings.append("⚠ OVERCONFIDENT INTERVALS: Coverage significantly below nominal")
     
     # Create multi-panel plot
@@ -349,13 +357,13 @@ def _plot_classification_calibration(y_true, y_pred, uncertainty, n_bins,
     overall_accuracy = (predicted_classes == y_true).mean()
     mean_confidence = confidence_scores.mean()
     
-    if ece > 0.1:
+    if ece > ECE_WARNING_THRESHOLD:
         warnings.append(f"⚠ HIGH CALIBRATION ERROR: ECE = {ece:.3f}")
     
-    if mean_confidence > overall_accuracy + 0.1:
+    if mean_confidence > overall_accuracy + CONFIDENCE_GAP_THRESHOLD:
         warnings.append(f"⚠ OVERCONFIDENT: Mean confidence ({mean_confidence:.2%}) >> Accuracy ({overall_accuracy:.2%})")
     
-    if mean_confidence < overall_accuracy - 0.1:
+    if mean_confidence < overall_accuracy - CONFIDENCE_GAP_THRESHOLD:
         warnings.append(f"⚠ UNDERCONFIDENT: Mean confidence ({mean_confidence:.2%}) << Accuracy ({overall_accuracy:.2%})")
     
     # Create multi-panel plot
@@ -506,13 +514,13 @@ def check_regression_calibration(y_true, intervals, confidence=0.95, tolerance=0
                 f"exceeds nominal ({confidence:.3f})"
             )
     
-    if mean_width < 1e-6:
+    if mean_width < UNCERTAINTY_COLLAPSE_THRESHOLD:
         warnings.append(
             f"UNCERTAINTY COLLAPSE: Mean interval width ({mean_width:.6f}) "
             "is extremely small"
         )
     
-    if np.std(upper - lower) < 1e-6:
+    if np.std(upper - lower) < CONSTANT_INTERVALS_THRESHOLD:
         warnings.append(
             "CONSTANT INTERVALS: All intervals have similar width"
         )
@@ -582,10 +590,10 @@ def check_classification_calibration(y_true, y_pred_proba, n_bins=10):
     
     warnings = []
     
-    if ece > 0.1:
+    if ece > ECE_WARNING_THRESHOLD:
         warnings.append(f"HIGH CALIBRATION ERROR: ECE = {ece:.3f}")
     
-    if mean_confidence > overall_accuracy + 0.1:
+    if mean_confidence > overall_accuracy + CONFIDENCE_GAP_THRESHOLD:
         warnings.append(
             f"OVERCONFIDENT: Mean confidence ({mean_confidence:.2%}) "
             f"exceeds accuracy ({overall_accuracy:.2%})"
