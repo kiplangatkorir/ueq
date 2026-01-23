@@ -2,7 +2,8 @@ import numpy as np
 from typing import Dict, List, Tuple, Union, Optional
 
 
-def coverage(y_true, intervals):
+def coverage(y_true: Union[np.ndarray, List], 
+            intervals: Union[np.ndarray, List[Tuple]]) -> float:
     """
     Compute coverage: fraction of true values inside prediction intervals.
 
@@ -25,7 +26,7 @@ def coverage(y_true, intervals):
     return np.mean((y_true >= lower) & (y_true <= upper))
 
 
-def sharpness(intervals):
+def sharpness(intervals: Union[np.ndarray, List[Tuple]]) -> float:
     """
     Compute sharpness: average width of prediction intervals.
 
@@ -45,7 +46,9 @@ def sharpness(intervals):
     return np.mean(upper - lower)
 
 
-def expected_calibration_error(y_true, intervals, n_bins=10):
+def expected_calibration_error(y_true: Union[np.ndarray, List], 
+                              intervals: Union[np.ndarray, List[Tuple]], 
+                              n_bins: int = 10) -> float:
     """
     Compute Expected Calibration Error (ECE) for prediction intervals.
 
@@ -84,7 +87,9 @@ def expected_calibration_error(y_true, intervals, n_bins=10):
     return ece
 
 
-def maximum_calibration_error(y_true, intervals, n_bins=10):
+def maximum_calibration_error(y_true: Union[np.ndarray, List], 
+                             intervals: Union[np.ndarray, List[Tuple]], 
+                             n_bins: int = 10) -> float:
     """
     Compute Maximum Calibration Error (MCE).
 
@@ -120,7 +125,7 @@ def maximum_calibration_error(y_true, intervals, n_bins=10):
     return max(errors) if errors else 0.0
 
 
-def interval_width(intervals):
+def interval_width(intervals: Union[np.ndarray, List[Tuple]]) -> float:
     """
     Compute mean interval width (alias for sharpness for clarity).
     
@@ -137,7 +142,9 @@ def interval_width(intervals):
     return sharpness(intervals)
 
 
-def interval_score(y_true, intervals, alpha=0.05):
+def interval_score(y_true: Union[np.ndarray, List], 
+                  intervals: Union[np.ndarray, List[Tuple]], 
+                  alpha: float = 0.05) -> float:
     """
     Compute interval score (a proper scoring rule for prediction intervals).
     
@@ -172,7 +179,8 @@ def interval_score(y_true, intervals, alpha=0.05):
     return np.mean(scores)
 
 
-def miscoverage_rate(y_true, intervals):
+def miscoverage_rate(y_true: Union[np.ndarray, List], 
+                    intervals: Union[np.ndarray, List[Tuple]]) -> float:
     """
     Compute miscoverage rate (fraction of points outside intervals).
     
@@ -247,7 +255,10 @@ def evaluate_uncertainty(y_true, y_pred, intervals,
     return results
 
 
-def check_calibration(y_true, intervals, confidence=0.95, tolerance=0.05):
+def check_calibration(y_true: Union[np.ndarray, List], 
+                     intervals: Union[np.ndarray, List[Tuple]], 
+                     confidence: float = 0.95, 
+                     tolerance: float = 0.05) -> Dict[str, Union[float, List[str], bool]]:
     """
     Check if prediction intervals are well-calibrated.
     

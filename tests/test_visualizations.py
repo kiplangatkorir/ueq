@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
+
+# Set non-interactive backend for testing
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend for testing
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from ueq.utils.visualization import (

@@ -5,13 +5,20 @@ This example shows:
 1. Standardized UQ evaluation metrics (Issue #9)
 2. Reliability and calibration diagnostics (Issue #10)
 3. Enhanced prediction interval visualizations (Issue #17)
+
+NOTE: Set MATPLOTLIB_BACKEND=Agg environment variable for non-interactive mode,
+      or remove the matplotlib.use() call below to see interactive plots.
 """
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
-import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
+import os
+
+# Use non-interactive backend if specified or in CI environment
+if os.getenv('MATPLOTLIB_BACKEND') == 'Agg' or os.getenv('CI'):
+    import matplotlib
+    matplotlib.use('Agg')
 
 from ueq import UQ
 from ueq.utils import (
@@ -122,7 +129,10 @@ def main():
     
     # 6. Generate visualizations (Issue #17)
     print("\n6. Generating visualizations...")
-    print("   (Plots saved in non-interactive mode)")
+    if os.getenv('MATPLOTLIB_BACKEND') == 'Agg' or os.getenv('CI'):
+        print("   (Running in non-interactive mode)")
+    else:
+        print("   (Plots will be displayed)")
     
     # Plot prediction intervals
     print("   - Plotting prediction intervals...")

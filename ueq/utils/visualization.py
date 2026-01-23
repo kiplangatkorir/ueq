@@ -58,12 +58,12 @@ def plot_calibration_curve(intervals, y_true, confidence=0.95, n_bins=10, title=
     empirical_coverages = []
 
     for q in nominal_coverages:
-        # shrink interval according to quantile q
-        width = (upper - lower) * (1 - q)
+        # Scale interval width to nominal coverage q
+        width = (upper - lower) * q
         mid = (upper + lower) / 2
-        shrunk_lower = mid - width / 2
-        shrunk_upper = mid + width / 2
-        covered_q = (y_true >= shrunk_lower) & (y_true <= shrunk_upper)
+        scaled_lower = mid - width / 2
+        scaled_upper = mid + width / 2
+        covered_q = (y_true >= scaled_lower) & (y_true <= scaled_upper)
         empirical_coverages.append(covered_q.mean())
 
     # Plot reliability diagram
