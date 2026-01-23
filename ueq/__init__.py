@@ -30,6 +30,11 @@ from .benchmarks import (
     make_concept_drift_data,
     make_covariate_shift_data
 )
+from .diagnostics import (
+    plot_calibration,
+    check_regression_calibration,
+    check_classification_calibration
+)
 
 __version__ = "1.0.2"
 __all__ = [
@@ -62,5 +67,8 @@ __all__ = [
     "make_synthetic_regression",
     "make_heteroscedastic_data",
     "make_concept_drift_data",
-    "make_covariate_shift_data"
+    "make_covariate_shift_data",
+    "plot_calibration",
+    "check_regression_calibration",
+    "check_classification_calibration"
 ]
