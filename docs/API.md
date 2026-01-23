@@ -455,3 +455,144 @@ Plot predictions with uncertainty intervals.
 - **title** (str): Plot title
 
 **Returns:** None (displays plot)
+
+## Diagnostics Module
+
+The diagnostics module provides comprehensive calibration and reliability diagnostics for uncertainty quantification.
+
+### Main Functions
+
+```python
+from ueq import plot_calibration, check_regression_calibration, check_classification_calibration
+# Or from the diagnostics module directly:
+from ueq.diagnostics import plot_calibration
+```
+
+#### `plot_calibration(y_true, y_pred, uncertainty, task='regression', confidence=0.95, n_bins=10, figsize=(14, 10), title=None, show_warnings=True, return_diagnostics=False)`
+
+Comprehensive calibration diagnostic plot for uncertainty quantification. Creates a multi-panel visualization combining reliability diagrams, coverage vs confidence/width analysis, calibration error distribution, and diagnostic warnings.
+
+**Parameters:**
+- **y_true** (array-like): True target values
+- **y_pred** (array-like): Point predictions (mean/median for regression, class probabilities for classification)
+- **uncertainty** (array-like): 
+  - For regression: intervals as [(lower, upper), ...] or uncertainty estimates (standard deviations/half-widths)
+  - For classification: prediction probabilities (n_samples, n_classes) or confidence scores (n_samples,)
+- **task** (str, default='regression'): Type of task ('regression' or 'classification')
+- **confidence** (float, default=0.95): Expected nominal confidence/coverage level (regression only)
+- **n_bins** (int, default=10): Number of bins for calibration analysis
+- **figsize** (tuple, default=(14, 10)): Figure size (width, height)
+- **title** (str, optional): Main title for the plot
+- **show_warnings** (bool, default=True): Whether to display diagnostic warnings
+- **return_diagnostics** (bool, default=False): If True, return diagnostic dictionary
+
+**Returns:** 
+- dict (optional): Diagnostic information if return_diagnostics=True
+
+**Example:**
+```python
+from ueq import UQ, plot_calibration
+from sklearn.ensemble import RandomForestRegressor
+
+# Train model with UQ
+uq = UQ(RandomForestRegressor())
+uq.fit(X_train, y_train)
+y_pred, intervals = uq.predict(X_test, return_interval=True)
+
+# Generate comprehensive diagnostic plot
+diagnostics = plot_calibration(
+    y_true=y_test,
+    y_pred=y_pred,
+    uncertainty=intervals,
+    task='regression',
+    return_diagnostics=True
+)
+
+print(f"Coverage: {diagnostics['empirical_coverage']:.2%}")
+print(f"Warnings: {diagnostics['warnings']}")
+```
+
+#### `check_regression_calibration(y_true, intervals, confidence=0.95, tolerance=0.05)`
+
+Quick calibration check for regression intervals without plotting.
+
+**Parameters:**
+- **y_true** (array-like): True values
+- **intervals** (array-like): Prediction intervals [(lower, upper), ...]
+- **confidence** (float, default=0.95): Expected nominal coverage
+- **tolerance** (float, default=0.05): Acceptable deviation from nominal coverage
+
+**Returns:** 
+```python
+{
+    'empirical_coverage': float,
+    'nominal_coverage': float,
+    'coverage_error': float,
+    'mean_interval_width': float,
+    'warnings': list,
+    'is_well_calibrated': bool
+}
+```
+
+**Example:**
+```python
+from ueq import check_regression_calibration
+
+diagnostics = check_regression_calibration(y_test, intervals)
+if not diagnostics['is_well_calibrated']:
+    print("Calibration issues detected:")
+    for warning in diagnostics['warnings']:
+        print(f"  - {warning}")
+```
+
+#### `check_classification_calibration(y_true, y_pred_proba, n_bins=10)`
+
+Quick calibration check for classification predictions without plotting.
+
+**Parameters:**
+- **y_true** (array-like): True class labels
+- **y_pred_proba** (array-like): Predicted probabilities (n_samples, n_classes) or confidence scores (n_samples,)
+- **n_bins** (int, default=10): Number of bins for ECE calculation
+
+**Returns:**
+```python
+{
+    'expected_calibration_error': float,
+    'overall_accuracy': float,
+    'mean_confidence': float,
+    'warnings': list,
+    'is_well_calibrated': bool
+}
+```
+
+**Example:**
+```python
+from ueq import check_classification_calibration
+
+y_pred_proba = classifier.predict_proba(X_test)
+diagnostics = check_classification_calibration(y_test, y_pred_proba)
+print(f"ECE: {diagnostics['expected_calibration_error']:.4f}")
+print(f"Confidence Gap: {diagnostics['mean_confidence'] - diagnostics['overall_accuracy']:+.2%}")
+```
+
+### Diagnostic Features
+
+The diagnostics module provides:
+
+1. **Reliability Diagrams**: Visualize nominal vs empirical coverage to assess calibration quality
+2. **Coverage vs Confidence Plots**: Analyze relationship between interval width and coverage
+3. **Calibration Error Distribution**: Identify systematic calibration errors
+4. **Automated Warnings** for common issues:
+   - Overconfident intervals (coverage significantly below nominal)
+   - Undercoverage (coverage below expected)
+   - Overcoverage (intervals too conservative)
+   - Uncertainty collapse (intervals extremely narrow)
+   - Constant intervals (lack of adaptive uncertainty)
+
+### Integration
+
+The diagnostics module integrates seamlessly with:
+- `ueq.evaluate()` for metric computation
+- `ueq.UQ` for uncertainty estimation
+- All UQ methods (Bootstrap, Conformal, MC Dropout, etc.)
+- Both regression and classification tasks
