@@ -14,6 +14,8 @@ This documentation provides everything you need to understand, use, and deploy U
 | **[TUTORIAL.md](TUTORIAL.md)** | Step-by-step tutorials and usage examples | Beginners, learners |
 | **[PRODUCTION_GUIDE.md](PRODUCTION_GUIDE.md)** | Production deployment, monitoring, and scaling | DevOps, ML engineers |
 | **[EXAMPLES.md](EXAMPLES.md)** | Comprehensive examples and use cases | All users |
+| **[ROADMAP.md](ROADMAP.md)** | Proposed development roadmap (Sept 2026 to Sept 2027): current status, real-world positioning, phased plan, issue triage | Maintainers, contributors |
+| **[USE_CASES.md](USE_CASES.md)** | Research behind the roadmap: eight real-world domains, verified datasets, competitor landscape | Maintainers, contributors |
 
 ## 🚀 Quick Start
 
