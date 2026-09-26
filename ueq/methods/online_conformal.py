@@ -5,9 +5,20 @@ Implements streaming conformal prediction methods that maintain coverage
 under non-stationary data and distribution drift.
 """
 
-import numpy as np
-from typing import Optional
+import warnings
 from collections import deque
+
+import numpy as np
+
+from ._conformal_utils import (
+    encode_labels,
+    min_calibration_size,
+    model_classes,
+    point_labels,
+    prediction_sets,
+    upper_quantile,
+)
+from .._warnings import warn_experimental
 
 
 class OnlineConformalUQ:
@@ -48,8 +59,10 @@ class OnlineConformalUQ:
             self.calib_scores = []
         
         self.q = None
+        self.classes_ = None
         self.is_fitted = False
         self.n_updates = 0
+        self._warned_small_buffer = False
     
     def fit(self, X_train, y_train, X_calib, y_calib):
         """
@@ -63,8 +76,8 @@ class OnlineConformalUQ:
             scores = np.abs(y_calib - preds)
         elif self.task_type == "classification":
             probas = self.base_model.predict_proba(X_calib)
-            true_class_probs = probas[np.arange(len(y_calib)), y_calib]
-            scores = 1 - true_class_probs
+            self.classes_ = model_classes(self.base_model, probas.shape[1])
+            scores = self._classification_scores(probas, y_calib)
         else:
             raise ValueError(f"Unknown task_type: {self.task_type}")
         
@@ -96,8 +109,7 @@ class OnlineConformalUQ:
             new_scores = np.abs(y_new - preds)
         elif self.task_type == "classification":
             probas = self.base_model.predict_proba(X_new)
-            true_class_probs = probas[np.arange(len(y_new)), y_new]
-            new_scores = 1 - true_class_probs
+            new_scores = self._classification_scores(probas, y_new)
         
         # Add new scores to calibration buffer
         for score in new_scores:
@@ -107,17 +119,31 @@ class OnlineConformalUQ:
         self._update_quantile()
         self.n_updates += 1
     
+    def _classification_scores(self, probas, y):
+        idx = encode_labels(y, self.classes_)
+        return 1 - probas[np.arange(len(idx)), idx]
+
     def _update_quantile(self):
-        """Recompute conformal quantile from current calibration buffer."""
-        if len(self.calib_scores) == 0:
-            self.q = 0
+        """Recompute conformal quantile from current calibration buffer.
+
+        Until the buffer holds enough scores for the requested alpha, the
+        quantile is infinite: intervals are unbounded and sets hold every class.
+        """
+        n = len(self.calib_scores)
+        if n < min_calibration_size(self.alpha):
+            if not self._warned_small_buffer:
+                warnings.warn(
+                    f"Calibration buffer holds {n} scores; at least "
+                    f"{min_calibration_size(self.alpha)} are needed for "
+                    f"alpha={self.alpha}. Returning infinite bounds (or the full "
+                    "label set) until it fills.",
+                    UserWarning,
+                    stacklevel=3,
+                )
+                self._warned_small_buffer = True
+            self.q = np.inf
             return
-        
-        scores_array = np.array(self.calib_scores)
-        n = len(scores_array)
-        k = int(np.ceil((1 - self.alpha) * (n + 1)))
-        # Fix: use min(k - 1, n - 1) for proper indexing
-        self.q = np.sort(scores_array)[min(k - 1, n - 1)]
+        self.q = upper_quantile(self.calib_scores, self.alpha)
     
     def predict(self, X, return_interval=False):
         """
@@ -133,11 +159,10 @@ class OnlineConformalUQ:
         
         elif self.task_type == "classification":
             probas = self.base_model.predict_proba(X)
-            pred_sets = [set(np.where(p >= 1 - self.q)[0]) for p in probas]
+            pred_sets = prediction_sets(probas, self.q, self.classes_)
             
             if return_interval:
-                labels = [list(s)[0] if len(s) == 1 else -1 for s in pred_sets]
-                return labels, pred_sets
+                return point_labels(pred_sets), pred_sets
             else:
                 return pred_sets
     
@@ -169,6 +194,11 @@ class AdaptiveConformalUQ(OnlineConformalUQ):
     
     def __init__(self, model, alpha=0.05, calibration_window=500,
                  drift_threshold=0.1, check_interval=50, task_type="regression"):
+        warn_experimental(
+            "AdaptiveConformalUQ",
+            "Its recalibration currently gives the same quantile as "
+            "OnlineConformalUQ(mode='rolling').",
+        )
         super().__init__(model, alpha, calibration_window, "rolling", task_type)
         self.drift_threshold = drift_threshold
         self.check_interval = check_interval
@@ -185,8 +215,8 @@ class AdaptiveConformalUQ(OnlineConformalUQ):
             covered = np.abs(y_new - preds) <= self.q
         elif self.task_type == "classification":
             probas = self.base_model.predict_proba(X_new)
-            pred_sets = [set(np.where(p >= 1 - self.q)[0]) for p in probas]
-            covered = np.array([y in ps for y, ps in zip(y_new, pred_sets)])
+            pred_sets = prediction_sets(probas, self.q, self.classes_)
+            covered = np.array([y in ps for y, ps in zip(np.asarray(y_new).tolist(), pred_sets)])
         
         # Track recent coverage
         for c in covered:

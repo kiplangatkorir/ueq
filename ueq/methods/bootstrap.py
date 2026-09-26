@@ -1,5 +1,14 @@
+import warnings
+
 import numpy as np
 from sklearn.base import clone
+
+_INTERVAL_WARNING = (
+    "Bootstrap intervals are percentile intervals of the mean prediction. "
+    "They leave out the noise in new outcomes and usually cover far fewer "
+    "outcomes than the nominal level. Use ConformalUQ (method='conformal') "
+    "for prediction intervals."
+)
 
 
 class BootstrapUQ:
@@ -69,6 +78,7 @@ class BootstrapUQ:
         mean_pred = preds.mean(axis=0)
 
         if return_interval:
+            _warn_once(self, _INTERVAL_WARNING)
             lower = np.percentile(preds, 100 * alpha / 2, axis=0)
             upper = np.percentile(preds, 100 * (1 - alpha / 2), axis=0)
             return mean_pred, list(zip(lower, upper))
@@ -84,3 +94,9 @@ class BootstrapUQ:
 
         preds = np.array([m.predict(X) for m in self.models])
         return preds
+
+
+def _warn_once(obj, message):
+    if not getattr(obj, "_interval_warning_issued", False):
+        warnings.warn(message, UserWarning, stacklevel=3)
+        obj._interval_warning_issued = True

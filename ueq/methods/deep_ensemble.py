@@ -1,8 +1,16 @@
+import warnings
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from copy import deepcopy
 import numpy as np
+
+
+_INTERVAL_WARNING = (
+    "Deep ensemble intervals are percentiles of the members' mean predictions. "
+    "They leave out the noise in new outcomes and usually cover far fewer "
+    "outcomes than the nominal level."
+)
 
 
 class DeepEnsembleUQ:
@@ -97,6 +105,7 @@ class DeepEnsembleUQ:
         mean = preds.mean(axis=0)        # (n_samples, 1)
 
         if return_interval:
+            _warn_once(self, _INTERVAL_WARNING)
             lower = np.percentile(preds, 100 * alpha / 2, axis=0).reshape(-1, 1)
             upper = np.percentile(preds, 100 * (1 - alpha / 2), axis=0).reshape(-1, 1)
             intervals = list(zip(lower.flatten(), upper.flatten()))
@@ -116,3 +125,9 @@ class DeepEnsembleUQ:
             preds = [m(X.to(self.device)).cpu().numpy().reshape(-1, 1) for m in self.models]
 
         return np.stack(preds, axis=0)
+
+
+def _warn_once(obj, message):
+    if not getattr(obj, "_interval_warning_issued", False):
+        warnings.warn(message, UserWarning, stacklevel=3)
+        obj._interval_warning_issued = True

@@ -68,18 +68,23 @@ def make_synthetic_regression(
     ... )
     >>> print(f"True variance range: {meta['noise_std'].min():.2f} to {meta['noise_std'].max():.2f}")
     """
-    if seed is not None:
-        np.random.seed(seed)
+    rng = np.random.default_rng(seed)
     
     # Generate input features
-    X = np.random.randn(n_samples, n_features)
+    X = rng.standard_normal((n_samples, n_features))
+    
+    # Apply covariate shift before computing targets, so that y | X is unchanged
+    shift_point = None
+    if shift == "covariate":
+        shift_point = n_samples // 2
+        # Shift the distribution of the first feature
+        X[shift_point:, 0] += shift_strength
     
     # True function (linear with some nonlinearity)
-    weights = np.random.randn(n_features)
+    weights = rng.standard_normal(n_features)
     y_true = X @ weights + 0.5 * np.sin(X[:, 0]) * X[:, 1]
     
     # Apply concept drift if requested
-    shift_point = None
     if shift == "concept_drift":
         shift_point = n_samples // 2
         drift_effect = shift_strength * np.linspace(0, 1, n_samples)
@@ -99,15 +104,8 @@ def make_synthetic_regression(
         shift_point = n_samples // 2
         noise_std[shift_point:] *= (1.0 + shift_strength)
     
-    # Apply covariate shift if requested
-    if shift == "covariate":
-        shift_point = n_samples // 2
-        # Shift the distribution of the first feature
-        X[shift_point:, 0] += shift_strength
-    
     # Generate noisy targets
-    noise = np.random.randn(n_samples) * noise_std
-    y = y_true + noise
+    y = y_true + rng.standard_normal(n_samples) * noise_std
     
     meta = {
         'y_true': y_true,
@@ -161,11 +159,10 @@ def make_heteroscedastic_data(
     meta : dict
         Metadata with 'y_true' and 'noise_std'.
     """
-    if seed is not None:
-        np.random.seed(seed)
+    rng = np.random.default_rng(seed)
     
-    X = np.random.randn(n_samples, n_features)
-    weights = np.random.randn(n_features)
+    X = rng.standard_normal((n_samples, n_features))
+    weights = rng.standard_normal(n_features)
     y_true = X @ weights
     
     # Normalize first feature to [0, 1] for variance computation
@@ -181,8 +178,7 @@ def make_heteroscedastic_data(
         raise ValueError(f"Unknown variance_function: {variance_function}")
     
     noise_std = np.sqrt(variance)
-    noise = np.random.randn(n_samples) * noise_std
-    y = y_true + noise
+    y = y_true + rng.standard_normal(n_samples) * noise_std
     
     meta = {
         'y_true': y_true,
@@ -231,27 +227,26 @@ def make_concept_drift_data(
     meta : dict
         Metadata with drift information.
     """
-    if seed is not None:
-        np.random.seed(seed)
+    rng = np.random.default_rng(seed)
     
-    X = np.random.randn(n_samples, n_features)
+    X = rng.standard_normal((n_samples, n_features))
     
     # Initial weights
-    w_init = np.random.randn(n_features)
+    w_init = rng.standard_normal(n_features)
     
     # Time index
     t = np.linspace(0, 1, n_samples)
     
     if drift_type == "gradual":
         # Linearly evolving weights
-        w_drift = np.random.randn(n_features) * drift_strength
+        w_drift = rng.standard_normal(n_features) * drift_strength
         y_true = np.array([X[i] @ (w_init + t[i] * w_drift) for i in range(n_samples)])
     
     elif drift_type == "abrupt":
         # Sudden change at midpoint
         y_true = np.zeros(n_samples)
         mid = n_samples // 2
-        w_new = w_init + np.random.randn(n_features) * drift_strength
+        w_new = w_init + rng.standard_normal(n_features) * drift_strength
         y_true[:mid] = X[:mid] @ w_init
         y_true[mid:] = X[mid:] @ w_new
     
@@ -259,15 +254,14 @@ def make_concept_drift_data(
         # Oscillating concept
         period = 4  # Number of periods over the dataset
         drift_signal = np.sin(2 * np.pi * period * t) * drift_strength
-        w_drift = np.random.randn(n_features)
+        w_drift = rng.standard_normal(n_features)
         y_true = np.array([X[i] @ (w_init + drift_signal[i] * w_drift) for i in range(n_samples)])
     
     else:
         raise ValueError(f"Unknown drift_type: {drift_type}")
     
     # Add noise
-    noise = np.random.randn(n_samples) * 0.5
-    y = y_true + noise
+    y = y_true + rng.standard_normal(n_samples) * 0.5
     
     meta = {
         'y_true': y_true,
@@ -318,25 +312,24 @@ def make_covariate_shift_data(
     meta : dict
         Metadata about the shift.
     """
-    if seed is not None:
-        np.random.seed(seed)
+    rng = np.random.default_rng(seed)
     
     # Training data from N(0, 1)
-    X_train = np.random.randn(n_train, n_features)
+    X_train = rng.standard_normal((n_train, n_features))
     
     # Test data with shifted mean
-    X_test = np.random.randn(n_test, n_features)
+    X_test = rng.standard_normal((n_test, n_features))
     X_test[:, 0] += shift_strength  # Shift first feature
     
     # Same underlying function
-    weights = np.random.randn(n_features)
+    weights = rng.standard_normal(n_features)
     y_train_true = X_train @ weights
     y_test_true = X_test @ weights
     
     # Same noise level
     noise_std = 0.5
-    y_train = y_train_true + np.random.randn(n_train) * noise_std
-    y_test = y_test_true + np.random.randn(n_test) * noise_std
+    y_train = y_train_true + rng.standard_normal(n_train) * noise_std
+    y_test = y_test_true + rng.standard_normal(n_test) * noise_std
     
     meta = {
         'shift_strength': shift_strength,

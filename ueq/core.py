@@ -1,11 +1,13 @@
+import warnings
+
+import numpy as np
+from sklearn.base import is_classifier, is_regressor
+
 from .methods.bootstrap import BootstrapUQ
 from .methods.conformal import ConformalUQ
 from .methods.mc_dropout import MCDropoutUQ
 from .methods.deep_ensemble import DeepEnsembleUQ
-
-import numpy as np
-import torch
-import torch.nn as nn
+from ._warnings import warn_experimental
 
 class UQ:
     """
@@ -56,7 +58,7 @@ class UQ:
         
         # Check for scikit-learn style models
         if hasattr(model, 'fit') and hasattr(model, 'predict'):
-            if hasattr(model, 'predict_proba'):
+            if _looks_like_classifier(model):
                 return "sklearn_classifier"
             else:
                 return "sklearn_regressor"
@@ -106,7 +108,20 @@ class UQ:
                 f"Unknown model type: {type(self.model)}. "
                 "Please specify method explicitly or use a supported model type."
             )
-        
+
+        if selected_method == "bootstrap":
+            warnings.warn(
+                "UQ(model) auto-selected bootstrap for a regressor. Bootstrap "
+                "intervals describe uncertainty in the mean prediction, not in "
+                "new outcomes, and usually cover far fewer outcomes than the "
+                "nominal level (7.7% at a nominal 95% for LinearRegression in "
+                "our tests). The default will change to split conformal in "
+                "1.1.0; pass method='conformal' now for valid prediction "
+                "intervals.",
+                FutureWarning,
+                stacklevel=3,
+            )
+
         return selected_method
 
     def _init_method(self, **kwargs):
@@ -117,7 +132,9 @@ class UQ:
 
         elif self.method == "conformal":
             if self.model is None:
-                raise ValueError("Conformal requires a model instance.")        
+                raise ValueError("Conformal requires a model instance.")
+            if self.model_type == "sklearn_classifier":
+                kwargs.setdefault("task_type", "classification")
             return ConformalUQ(self.model, **kwargs)
 
         elif self.method == "mc_dropout":
@@ -169,7 +186,18 @@ class UQ:
             Lower and upper bounds of prediction intervals 
             (only if return_interval=True).
         """
+        if self.method == "mc_dropout" and not getattr(self, "_mc_dropout_warned", False):
+            warnings.warn(
+                "MC dropout returns (mean, std), not prediction intervals.",
+                UserWarning,
+                stacklevel=2,
+            )
+            self._mc_dropout_warned = True
+
         preds = self.uq_model.predict(*args, **kwargs)
+
+        if getattr(self.uq_model, "task_type", None) == "classification":
+            return preds
 
         if isinstance(preds, tuple) and len(preds) == 2:
             mean, intervals = preds
@@ -177,6 +205,7 @@ class UQ:
             return mean, intervals
 
         return preds
+
     def predict_dist(self, *args, **kwargs):
         """Return predictive distribution (if available)."""
         if hasattr(self.uq_model, "predict_dist"):
@@ -258,21 +287,30 @@ class UQ:
         -------
         dict
             Monitoring results
+
+        Notes
+        -----
+        Experimental: the drift score does not use the baseline passed here.
         """
+        from ._warnings import ExperimentalWarning
         from .utils.monitoring import UQMonitor
-        
+
+        warn_experimental("UQ.monitor")
+
         # Get predictions
         try:
             predictions, uncertainty = self.predict(X, return_interval=True)
-        except:
+        except TypeError:
             predictions = self.predict(X, return_interval=False)
             uncertainty = None
-        
-        # Create monitor
-        monitor = UQMonitor(
-            baseline_data=baseline_data,
-            baseline_uncertainty=baseline_uncertainty
-        )
+
+        # Create monitor (UQ.monitor has already warned that this is experimental)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", ExperimentalWarning)
+            monitor = UQMonitor(
+                baseline_data=baseline_data,
+                baseline_uncertainty=baseline_uncertainty
+            )
         
         # Monitor
         results = monitor.monitor(predictions, uncertainty)
@@ -309,3 +347,16 @@ class UQ:
             }
         
         return profiler.benchmark_methods(methods, X)
+
+
+def _looks_like_classifier(model):
+    """True for scikit-learn classifiers, and for other models that expose
+    predict_proba and do not declare themselves regressors."""
+    try:
+        if is_classifier(model):
+            return True
+        if is_regressor(model):
+            return False
+    except Exception:
+        pass
+    return hasattr(model, "predict_proba")
