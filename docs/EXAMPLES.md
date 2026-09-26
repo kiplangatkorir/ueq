@@ -1,5 +1,7 @@
 # UEQ Examples Documentation
 
+Status in 1.0.2: the bootstrap, deep ensemble and Bayesian linear examples produce epistemic-only intervals, which are not prediction intervals, and the monitoring, performance and cross-framework examples use experimental APIs. Only the conformal prediction example is validated. See the status table in the [README](../README.md).
+
 ## Table of Contents
 
 1. [Basic Examples](#basic-examples)
@@ -440,7 +442,7 @@ if __name__ == "__main__":
 
 **Key Features:**
 - Automatic model type detection
-- Optimal method selection
+- Method selection from the model type
 - Zero-configuration UQ
 
 ### 2. Cross-Framework Ensembles
@@ -456,6 +458,7 @@ Demonstrates combining models from different frameworks in unified uncertainty e
 """
 
 import numpy as np
+from sklearn.datasets import make_regression
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 import torch.nn as nn
@@ -542,7 +545,7 @@ if __name__ == "__main__":
 """
 Production Features Demo
 
-Demonstrates production-ready features of UEQ v1.0.1:
+Demonstrates the monitoring and performance utilities of UEQ (experimental in 1.0.2):
 - Model monitoring and drift detection
 - Performance optimization for large datasets
 - Batch processing and parallelization
@@ -1209,7 +1212,7 @@ if __name__ == "__main__":
 - Advanced ensemble analysis
 - Performance evaluation
 
-This comprehensive examples documentation covers all the major use cases and features of UEQ, from basic usage to advanced production scenarios. Each example is designed to be educational and immediately runnable.
+This page covers the main use cases and features of UEQ. The examples that use experimental APIs (monitoring, performance utilities, cross-framework ensembles) are not validated.
 
 ## 🐛 Issues and Support
 

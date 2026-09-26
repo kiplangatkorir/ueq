@@ -7,6 +7,8 @@ from typing import Dict, List, Tuple, Optional, Any
 from collections import deque
 import warnings
 
+from .._warnings import warn_experimental
+
 
 class UQMonitor:
     """
@@ -26,6 +28,11 @@ class UQMonitor:
     
     def __init__(self, baseline_data=None, baseline_uncertainty=None, 
                  window_size=100, drift_threshold=0.1):
+        warn_experimental(
+            "UQMonitor",
+            "It does not use the baseline passed to the constructor, so its "
+            "drift score is always 0.",
+        )
         self.baseline_data = baseline_data
         self.baseline_uncertainty = baseline_uncertainty
         self.window_size = window_size

@@ -185,7 +185,7 @@ samples = uq.predict_dist(X_test, n_samples=1000)
 
 ## Auto-Detection System
 
-UEQ automatically detects your model type and selects the optimal UQ method:
+UEQ detects your model type and chooses a UQ method:
 
 ```python
 from ueq import UQ

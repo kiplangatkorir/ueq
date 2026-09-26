@@ -1,33 +1,28 @@
 # UEQ Documentation
 
-Welcome to the comprehensive documentation for **Uncertainty Everywhere (UEQ)** - a unified Python library for Uncertainty Quantification (UQ).
+Documentation for **UEQ (Uncertainty Everywhere)**, a Python library for uncertainty quantification of machine learning models.
 
-## 📚 Documentation Overview
+Before relying on a method, check its status in the table below or in the [main README](../README.md). In 1.0.2, split conformal prediction is the validated core. Bootstrap, deep ensembles and Bayesian linear regression give model (epistemic) uncertainty only, and the monitoring, recalibration and cross-framework APIs are experimental.
 
-This documentation provides everything you need to understand, use, and deploy UEQ in production environments.
-
-### 📖 Documentation Structure
+## Documents
 
 | Document | Description | Audience |
 |----------|-------------|----------|
-| **[API.md](API.md)** | Complete API reference with all classes, methods, and parameters | Developers, API users |
-| **[TUTORIAL.md](TUTORIAL.md)** | Step-by-step tutorials and usage examples | Beginners, learners |
-| **[PRODUCTION_GUIDE.md](PRODUCTION_GUIDE.md)** | Production deployment, monitoring, and scaling | DevOps, ML engineers |
-| **[EXAMPLES.md](EXAMPLES.md)** | Comprehensive examples and use cases | All users |
+| **[API.md](API.md)** | API reference for classes, methods and parameters | Developers, API users |
+| **[TUTORIAL.md](TUTORIAL.md)** | Step-by-step tutorials | Beginners |
+| **[EXAMPLES.md](EXAMPLES.md)** | Walkthroughs of the scripts in `examples/` | All users |
+| **[PRODUCTION_GUIDE.md](PRODUCTION_GUIDE.md)** | Deployment, monitoring and scaling patterns (experimental APIs) | ML engineers |
+| **[ROADMAP.md](ROADMAP.md)** | Proposed development roadmap (Sept 2026 to Sept 2027): current status, real-world positioning, phased plan, issue triage | Maintainers, contributors |
+| **[USE_CASES.md](USE_CASES.md)** | Research behind the roadmap: eight real-world domains, verified datasets, competitor landscape | Maintainers, contributors |
+| **[releases/](releases/)** | Archived release notes and per-PR summaries | Maintainers |
 
-## 🚀 Quick Start
-
-### Installation
+## Installation
 
 ```bash
 pip install ueq
 ```
 
-**That's it!** UEQ is now available on PyPI. No need to clone or build from source.
-
-### Development Installation
-
-If you want to contribute or use the latest development version:
+PyPI currently serves 1.0.1. To use the fixes described in the [CHANGELOG](../CHANGELOG.md) before 1.0.2 is published, install from source:
 
 ```bash
 git clone https://github.com/kiplangatkorir/ueq.git
@@ -35,291 +30,65 @@ cd ueq
 pip install -e .
 ```
 
-### Basic Usage
+## Quick start
+
+Split conformal prediction gives intervals that cover new outcomes at the requested rate when calibration and test data are exchangeable. It needs a separate calibration set.
 
 ```python
-from ueq import UQ
-from sklearn.linear_model import LinearRegression
 from sklearn.datasets import make_regression
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 
-# Generate data
-X, y = make_regression(n_samples=100, n_features=5, noise=10, random_state=42)
+from ueq import UQ, coverage
 
-# Create model
-model = LinearRegression()
+X, y = make_regression(n_samples=1000, n_features=5, noise=10, random_state=42)
+X_train, X_rest, y_train, y_rest = train_test_split(X, y, test_size=0.5, random_state=0)
+X_calib, X_test, y_calib, y_test = train_test_split(X_rest, y_rest, test_size=0.5, random_state=0)
 
-# Wrap with UEQ (auto-detection)
-uq = UQ(model)  # Automatically selects bootstrap method
-
-# Fit and predict
-uq.fit(X, y)
-predictions, intervals = uq.predict(X[:10], return_interval=True)
-
-print("Predictions:", predictions)
-print("Uncertainty intervals:", intervals)
-```
-
-## 🎯 Key Features
-
-### **Auto-Detection System**
-- Automatically detects model types (sklearn, PyTorch, constructors)
-- Selects optimal UQ methods based on model characteristics
-- Zero-configuration uncertainty quantification
-
-### **Cross-Framework Support**
-- **Scikit-learn**: Bootstrap, Conformal Prediction
-- **PyTorch**: MC Dropout, Deep Ensembles
-- **Cross-framework**: Combine models from different frameworks
-- **Bayesian**: Closed-form Bayesian linear regression
-
-### **Production Features**
-- **Model Monitoring**: Real-time drift detection
-- **Performance Optimization**: Batch processing, memory efficiency
-- **Health Monitoring**: Service health and alerting
-- **Scalability**: Horizontal scaling and load balancing
-
-## 📋 UQ Methods
-
-| Method | Framework | Use Case | Coverage | Speed |
-|--------|-----------|----------|----------|-------|
-| **Bootstrap** | sklearn | General purpose | Ensemble-based | Fast |
-| **Conformal** | sklearn | Distribution-free | Guaranteed | Fast |
-| **MC Dropout** | PyTorch | Deep learning | Bayesian approximation | Medium |
-| **Deep Ensemble** | PyTorch | Best uncertainty | Multiple models | Slow |
-| **Bayesian Linear** | None | Linear problems | Closed-form | Very fast |
-| **Cross-framework** | Any | Multi-framework | Unified | Variable |
-
-## 🔧 API Overview
-
-### Core Classes
-
-```python
-# Main UQ interface
-from ueq import UQ
-
-# Monitoring and performance
-from ueq import UQMonitor, PerformanceMonitor, BatchProcessor
-
-# Metrics and evaluation
-from ueq import coverage, sharpness, expected_calibration_error
-```
-
-### Key Methods
-
-```python
-# Basic usage
-uq = UQ(model, method="auto")
-uq.fit(X_train, y_train)
+uq = UQ(LinearRegression(), method="conformal", alpha=0.1)  # 90% intervals
+uq.fit(X_train, y_train, X_calib, y_calib)
 predictions, intervals = uq.predict(X_test, return_interval=True)
 
-# Production features
-uq.predict_large_dataset(X_large, batch_size=1000)
-monitoring_results = uq.monitor(X_new, y_new)
-benchmark_results = uq.benchmark(X_test)
-
-# Model information
-info = uq.get_info()
+print(f"Coverage: {coverage(y_test, intervals):.3f} (target 0.90)")
 ```
 
-## 📊 Uncertainty Quality Metrics
+For a classifier with `predict_proba`, `UQ(classifier)` returns prediction sets of class labels with the same `fit` signature.
 
-### Coverage
-Fraction of true values within prediction intervals.
+## Methods and their status
+
+| Method | Framework | What the output means | Status in 1.0.2 |
+|--------|-----------|-----------------------|-----------------|
+| **Split conformal** (`method="conformal"`) | scikit-learn | Prediction intervals or label sets with marginal coverage | Validated |
+| **Online conformal** (`OnlineConformalUQ`) | scikit-learn | Conformal quantile over a rolling window | Works as a heuristic; no guarantee under shift |
+| **Bootstrap** | scikit-learn | Interval for the mean prediction, not for new outcomes | Epistemic only; still the auto default for regressors, changing in 1.1.0 |
+| **Deep ensemble** | PyTorch | Spread of the members' mean predictions | Epistemic only |
+| **MC dropout** | PyTorch | Mean and standard deviation, not intervals | Epistemic only |
+| **Bayesian linear** | NumPy | Gaussian interval with a fixed noise precision | Coverage depends on the scale of y |
+| **Cross-framework ensemble** | Any | Aggregated member intervals | Experimental |
+
+## Metrics
 
 ```python
-from ueq import coverage
-cov = coverage(y_true, intervals)
-print(f"Coverage: {cov:.3f} (target: 0.95)")
+from ueq import coverage, interval_width, interval_score
+
+cov = coverage(y_test, intervals)                       # fraction of outcomes inside
+width = interval_width(intervals)                       # mean width; lower is sharper
+score = interval_score(y_test, intervals, alpha=0.1)    # Winkler score; lower is better
 ```
 
-### Sharpness
-Average width of prediction intervals (lower is better).
+The interval `expected_calibration_error` and `maximum_calibration_error` bin intervals by their position in the array, so their values are not meaningful; they will be deprecated in 1.1.0. For classifiers, use `check_classification_calibration` from `ueq.diagnostics`.
 
-```python
-from ueq import sharpness
-sharp = sharpness(intervals)
-print(f"Sharpness: {sharp:.3f}")
-```
+## Research papers
 
-### Calibration
-Expected and Maximum Calibration Error.
+- Conformal prediction: [Vovk, Gammerman and Shafer, 2005](https://link.springer.com/book/10.1007/978-3-319-04013-4)
+- Bootstrap: Efron and Tibshirani, *An Introduction to the Bootstrap*, 1993
+- MC dropout: [Gal and Ghahramani, 2016](https://arxiv.org/abs/1506.02142)
+- Deep ensembles: [Lakshminarayanan et al., 2017](https://arxiv.org/abs/1612.01474)
 
-```python
-from ueq import expected_calibration_error, maximum_calibration_error
-ece = expected_calibration_error(y_true, intervals)
-mce = maximum_calibration_error(y_true, intervals)
-print(f"ECE: {ece:.3f}, MCE: {mce:.3f}")
-```
+## Contributing and support
 
-## 🏭 Production Deployment
+See [CONTRIBUTING.md](../CONTRIBUTING.md), including the statistical review gate for changes to methods and metrics. Report bugs on [GitHub Issues](https://github.com/kiplangatkorir/ueq/issues) with your Python and UEQ versions (`ueq.__version__`), steps to reproduce, and any error messages.
 
-### Service Architecture
+## License
 
-```python
-from ueq import UQ, UQMonitor, PerformanceMonitor
-
-class ProductionUQService:
-    def __init__(self, model):
-        self.uq = UQ(model)
-        self.monitor = UQMonitor()
-        self.performance_monitor = PerformanceMonitor()
-    
-    def predict(self, X):
-        predictions, uncertainty = self.uq.predict(X, return_interval=True)
-        monitoring = self.monitor.monitor(predictions, uncertainty)
-        return predictions, uncertainty, monitoring
-```
-
-### Monitoring and Alerting
-
-```python
-# Real-time drift detection
-monitor = UQMonitor(baseline_data=X_train, baseline_uncertainty=baseline_unc)
-results = monitor.monitor(new_predictions, new_uncertainty)
-
-if results['drift_score'] > 0.1:
-    print("⚠️ Drift detected - consider retraining")
-```
-
-### Performance Optimization
-
-```python
-# Large dataset processing
-predictions = uq.predict_large_dataset(X_large, batch_size=1000)
-
-# Batch processing
-from ueq import BatchProcessor
-processor = BatchProcessor(batch_size=500, n_jobs=4)
-results = processor.process_batches(X_large, predict_func)
-```
-
-## 🔍 Model Monitoring
-
-### Drift Detection
-
-```python
-from ueq import UQMonitor
-
-# Create monitor
-monitor = UQMonitor(
-    baseline_data=X_train,
-    baseline_uncertainty=baseline_unc,
-    drift_threshold=0.1
-)
-
-# Monitor new data
-results = monitor.monitor(predictions, uncertainty)
-print(f"Drift score: {results['drift_score']:.3f}")
-print(f"Alerts: {len(results['alerts'])}")
-```
-
-### Performance Tracking
-
-```python
-from ueq import PerformanceMonitor
-
-# Track performance
-perf_monitor = PerformanceMonitor()
-perf_monitor.log_performance(predictions, true_values, inference_time)
-
-# Get summary
-summary = perf_monitor.get_performance_summary()
-print(f"Average latency: {summary['avg_latency']:.3f}s")
-```
-
-## 📈 Scaling Strategies
-
-### Horizontal Scaling
-
-```python
-# Load balancer for multiple UQ services
-class UQLoadBalancer:
-    def __init__(self, service_urls):
-        self.service_urls = service_urls
-        self.healthy_services = []
-    
-    def predict(self, X):
-        service_url = self.get_healthy_service()
-        return self.call_service(service_url, X)
-```
-
-### Caching Layer
-
-```python
-# Redis caching for predictions
-from ueq import UQCache
-
-cache = UQCache(cache_backend='redis', ttl=3600)
-result = cache.predict_with_cache(X, predict_func)
-```
-
-## 🎓 Learning Path
-
-### For Beginners
-1. Start with **[TUTORIAL.md](TUTORIAL.md)** - Basic usage and concepts
-2. Try the examples in **[EXAMPLES.md](EXAMPLES.md)** - Hands-on learning
-3. Explore the **[API.md](API.md)** - Understand the interface
-
-### For Developers
-1. Read **[API.md](API.md)** - Complete API reference
-2. Study **[EXAMPLES.md](EXAMPLES.md)** - Advanced use cases
-3. Review **[PRODUCTION_GUIDE.md](PRODUCTION_GUIDE.md)** - Deployment patterns
-
-### For ML Engineers
-1. Focus on **[PRODUCTION_GUIDE.md](PRODUCTION_GUIDE.md)** - Production deployment
-2. Use **[EXAMPLES.md](EXAMPLES.md)** - Real-world scenarios
-3. Reference **[API.md](API.md)** - Technical details
-
-## 🔗 External Resources
-
-### Related Libraries
-- **scikit-learn**: Machine learning models
-- **PyTorch**: Deep learning framework
-- **scipy**: Statistical functions
-- **matplotlib**: Visualization
-
-### Research Papers
-- Conformal Prediction: [Vovk et al., 2005](https://link.springer.com/book/10.1007/978-3-319-04013-4)
-- Bootstrap Methods: [Efron & Tibshirani, 1993](https://www.crcpress.com/An-Introduction-to-the-Bootstrap/Efron-Tibshirani/p/book/9780412042317)
-- MC Dropout: [Gal & Ghahramani, 2016](https://arxiv.org/abs/1506.02142)
-- Deep Ensembles: [Lakshminarayanan et al., 2017](https://arxiv.org/abs/1612.01474)
-
-## 🤝 Contributing
-
-We welcome contributions! Please see the main repository for:
-- Issue reporting
-- Feature requests
-- Pull requests
-- Code of conduct
-
-## 📄 License
-
-This project is licensed under the MIT License - see the main repository for details.
-
-## 🆘 Support
-
-- **Documentation**: This comprehensive guide
-- **Examples**: Run the examples in `examples/` directory
-- **Issues**: Report bugs and request features on [GitHub Issues](https://github.com/kiplangatkorir/ueq/issues)
-- **Discussions**: Join community discussions
-
-### 🐛 Reporting Issues
-
-If you encounter any problems:
-
-1. **Check the documentation** first
-2. **Search existing issues** to see if your problem is already reported
-3. **Create a new issue** with:
-   - Clear description of the problem
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Python version and UEQ version (`ueq.__version__`)
-   - Error messages (if any)
-
-**We're here to help!** 🚀
-
----
-
-**Happy Uncertainty Quantification! 🎉**
-
-*For the latest updates and news, follow the project on GitHub.*
+Apache License 2.0; see [LICENSE](../LICENSE).

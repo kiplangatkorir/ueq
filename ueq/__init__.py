@@ -1,4 +1,5 @@
 from .core import UQ
+from ._warnings import ExperimentalWarning
 from .utils.metrics import (
     coverage,
     sharpness,
@@ -39,6 +40,7 @@ from .diagnostics import (
 __version__ = "1.0.2"
 __all__ = [
     "UQ",
+    "ExperimentalWarning",
     "coverage",
     "sharpness",
     "interval_width",

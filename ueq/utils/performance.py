@@ -147,7 +147,7 @@ class PerformanceProfiler:
         for _ in range(self.warmup_runs):
             try:
                 func(*args, **kwargs)
-            except:
+            except Exception:
                 pass
         
         # Actual timing
@@ -287,7 +287,7 @@ def memory_efficient_predict(model, data, batch_size=1000,
                 pred, unc = model.predict(batch, return_interval=True)
                 predictions.append(pred)
                 uncertainties.append(unc)
-            except:
+            except TypeError:
                 # Fallback to single prediction
                 pred = model.predict(batch)
                 predictions.append(pred)

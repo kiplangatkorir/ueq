@@ -1,3 +1,5 @@
+> Archived. This file is kept for history and does not describe the current state of UEQ. For the status of each feature, see [CHANGELOG.md](../../CHANGELOG.md).
+
 # 🔥 UEQ v1.0.1 Phoenix Release Notes 🔥
 
 **"Rising from Research to Production"**
@@ -92,7 +94,7 @@ pip install ueq
 
 If you encounter any problems:
 
-1. **Check the [documentation](docs/)** for comprehensive guides and examples
+1. **Check the [documentation](../)** for comprehensive guides and examples
 2. **Search existing [issues](https://github.com/kiplangatkorir/ueq/issues)** to see if your problem is already reported
 3. **Create a new issue** with:
    - Clear description of the problem

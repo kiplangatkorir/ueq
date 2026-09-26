@@ -10,6 +10,8 @@ from typing import Optional, Union, Tuple, Callable, Dict
 from collections import deque
 import warnings
 
+from .._warnings import warn_experimental
+
 
 class DriftAwareRecalibrator:
     """
@@ -68,6 +70,10 @@ class DriftAwareRecalibrator:
                  drift_threshold: float = 0.1, coverage_check_interval: int = 50,
                  target_coverage: float = 0.9, coverage_tolerance: float = 0.05,
                  min_calibration_samples: int = 50):
+        warn_experimental(
+            "DriftAwareRecalibrator",
+            "Its recalibrations do not currently change the conformal quantile.",
+        )
         self.uq_method = uq_method
         self.drift_detector = drift_detector
         self.drift_threshold = drift_threshold
@@ -372,6 +378,10 @@ class UncertaintyInflator:
     
     def __init__(self, base_uq_method, inflation_strategy: str = "multiplicative",
                  max_inflation: float = 2.0, drift_threshold: float = 0.1):
+        warn_experimental(
+            "UncertaintyInflator",
+            "Inflation is a heuristic with no coverage guarantee.",
+        )
         self.base_uq_method = base_uq_method
         self.inflation_strategy = inflation_strategy
         self.max_inflation = max_inflation

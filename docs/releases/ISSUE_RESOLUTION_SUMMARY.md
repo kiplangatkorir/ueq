@@ -1,3 +1,5 @@
+> Archived. This file is kept for history and does not describe the current state of UEQ. For the status of each feature, see [CHANGELOG.md](../../CHANGELOG.md).
+
 # Issue Resolution Summary
 
 ## Overview

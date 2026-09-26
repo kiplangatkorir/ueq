@@ -1,3 +1,4 @@
+# Requires the optional yfinance package and network access: pip install yfinance
 import yfinance as yf
 import numpy as np
 from sklearn.preprocessing import StandardScaler

@@ -1,7 +1,10 @@
+import warnings
+from typing import List, Any
+
 import numpy as np
-import torch
-from typing import List, Union, Tuple, Any
+
 from ..core import UQ
+from .._warnings import warn_experimental
 
 
 class CrossFrameworkEnsembleUQ:
@@ -23,6 +26,10 @@ class CrossFrameworkEnsembleUQ:
     
     def __init__(self, models: List[Any], weights: List[float] = None, 
                  aggregation_method: str = "mean"):
+        warn_experimental(
+            "CrossFrameworkEnsembleUQ",
+            "Members that fail to fit or predict are dropped with a warning.",
+        )
         self.models = models
         self.n_models = len(models)
         self.weights = weights or [1.0 / self.n_models] * self.n_models
@@ -56,8 +63,6 @@ class CrossFrameworkEnsembleUQ:
         self.uq_wrappers = []
         
         for i, model in enumerate(self.models):
-            print(f"Training model {i+1}/{self.n_models}: {type(model).__name__}")
-            
             # Create UQ wrapper for this model
             uq_wrapper = self._create_uq_wrapper(model)
             
@@ -66,7 +71,7 @@ class CrossFrameworkEnsembleUQ:
                 uq_wrapper.fit(*args, **kwargs)
                 self.uq_wrappers.append(uq_wrapper)
             except Exception as e:
-                print(f"Warning: Failed to fit model {i+1}: {e}")
+                warnings.warn(f"Dropping model {i+1} ({type(model).__name__}): fit failed: {e}", UserWarning, stacklevel=2)
                 # Continue with other models
         
         if not self.uq_wrappers:
@@ -115,7 +120,7 @@ class CrossFrameworkEnsembleUQ:
                         all_predictions.append(pred_result)
                         
             except Exception as e:
-                print(f"Warning: Failed to predict with model {i+1}: {e}")
+                warnings.warn(f"Skipping model {i+1}: predict failed: {e}", UserWarning, stacklevel=2)
                 continue
         
         if not all_predictions:
@@ -194,7 +199,7 @@ class CrossFrameworkEnsembleUQ:
                     pred = uq_wrapper.predict(X, return_interval=False)
                     all_predictions.append(pred)
             except Exception as e:
-                print(f"Warning: Failed to get predictive distribution: {e}")
+                warnings.warn(f"Skipping a model: predictive distribution failed: {e}", UserWarning, stacklevel=2)
                 continue
         
         if not all_predictions:

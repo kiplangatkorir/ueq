@@ -4,6 +4,8 @@
 
 Uncertainty Everywhere (UEQ) is a unified Python library for Uncertainty Quantification (UQ) that provides a single interface for multiple UQ methods across different machine learning frameworks.
 
+Not every method documented here gives valid prediction intervals. Of the UQ methods, only split conformal prediction (`ConformalUQ`, including `UQ(classifier)`) is validated in 1.0.2; bootstrap, deep ensembles and Bayesian linear regression are epistemic only, and the monitoring, recalibration and cross-framework ensemble APIs are experimental. See the status table in the [README](../README.md) and Known issues in [CHANGELOG.md](../CHANGELOG.md).
+
 ## Core Classes
 
 ### UQ Class
@@ -26,7 +28,7 @@ uq = UQ(model=None, method="auto", **kwargs)
   - For cross-framework ensembles: pass a list of models
 
 - **method** (str, default="auto"): 
-  - `"auto"`: Automatically selects the best method based on model type
+  - `"auto"`: Chooses a method from the model type: bootstrap for scikit-learn regressors (with a `FutureWarning`, since these are not prediction intervals; the default changes to split conformal in 1.1.0), conformal prediction sets for classifiers
   - `"bootstrap"`: Bootstrap ensembles for sklearn models
   - `"conformal"`: Conformal prediction for distribution-free coverage
   - `"mc_dropout"`: Monte Carlo Dropout for PyTorch models
@@ -340,7 +342,7 @@ Monitor uncertainty quantification models for drift and performance degradation.
 - `get_summary()`: Get monitoring summary
 
 #### `PerformanceMonitor`
-Monitor model performance metrics in production.
+Track model performance metrics over a sliding window.
 
 **Parameters:**
 - **window_size** (int, default=100): Size of sliding window

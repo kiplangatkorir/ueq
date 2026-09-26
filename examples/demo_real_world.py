@@ -73,14 +73,15 @@ def main():
     models = {
         'Linear Regression': LinearRegression(),
         'Ridge Regression': Ridge(alpha=1.0),
-        'Random Forest': RandomForestRegressor(n_estimators=50, random_state=42)
+        'Random Forest': RandomForestRegressor(n_estimators=20, random_state=42)
     }
     
     print("\n🔍 Auto-detecting model types and selecting UQ methods...")
     
     uq_models = {}
     for name, model in models.items():
-        uq = UQ(model)  # Auto-detection magic!
+        # 20 bootstrap models keep the demo fast (the default is 100)
+        uq = UQ(model, n_models=20)
         info = uq.get_info()
         print(f"  {name}: {info['model_type']} → {info['method']}")
         uq_models[name] = uq
@@ -143,7 +144,7 @@ def main():
     # Create cross-framework ensemble
     ensemble_models = [
         LinearRegression(),
-        RandomForestRegressor(n_estimators=30, random_state=42),
+        Ridge(alpha=1.0),  # the ensemble bootstraps each member 100 times, so keep them cheap
         HousePriceNet
     ]
     

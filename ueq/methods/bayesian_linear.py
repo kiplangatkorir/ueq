@@ -1,6 +1,14 @@
+import warnings
+from typing import Tuple, List
+
 import numpy as np
-from typing import Tuple, List, Optional
 from scipy.stats import norm
+
+_INTERVAL_WARNING = (
+    "BayesianLinearUQ uses a fixed noise precision (beta) instead of "
+    "estimating it, so interval coverage depends on the scale of y. Set beta "
+    "to 1 / noise variance, or use ConformalUQ for prediction intervals."
+)
 
 class BayesianLinearUQ:
     """Bayesian Linear Regression with uncertainty quantification."""
@@ -51,6 +59,7 @@ class BayesianLinearUQ:
         mean_pred = X @ self.mean
         
         if return_interval:
+            _warn_once(self, _INTERVAL_WARNING)
             # Predictive variance
             var = 1/self.beta + np.sum(X @ self.cov * X, axis=1)
             std = np.sqrt(var)
@@ -83,3 +92,9 @@ class BayesianLinearUQ:
         # Get predictions for each sampled parameter
         predictions = X @ w_samples.T
         return predictions
+
+
+def _warn_once(obj, message):
+    if not getattr(obj, "_interval_warning_issued", False):
+        warnings.warn(message, UserWarning, stacklevel=3)
+        obj._interval_warning_issued = True

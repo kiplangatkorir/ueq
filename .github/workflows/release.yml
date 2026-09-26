@@ -1,0 +1,87 @@
+# Release workflow: builds UEQ and publishes it to PyPI when a tag such as
+# v1.0.2 is pushed.
+#
+# Before pushing the first tag, the maintainer must configure PyPI trusted
+# publishing for this repository, workflow and environment. Without it the
+# publish job fails.
+#   1. On PyPI, open the "ueq" project, then Settings > Publishing, and add a
+#      GitHub trusted publisher with owner "kiplangatkorir", repository "ueq",
+#      workflow "release.yml" and environment "pypi".
+#   2. On GitHub, create an environment named "pypi" (Settings > Environments).
+#      Adding a required reviewer there makes every release wait for approval.
+# No PyPI API token is used or needed.
+#
+# Push a tag only from a commit on main whose CI run is green.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Check version and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check that the tag matches the package version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          import sys
+
+          tag = os.environ["TAG"]
+
+          def find_version(path, pattern):
+              with open(path, encoding="utf-8") as f:
+                  match = re.search(pattern, f.read(), re.MULTILINE)
+              if match is None:
+                  sys.exit(f"Could not find a version string in {path}.")
+              return match.group(1)
+
+          setup_version = find_version("setup.py", r"""^\s*version\s*=\s*["']([^"']+)["']""")
+          init_version = find_version("ueq/__init__.py", r"""^__version__\s*=\s*["']([^"']+)["']""")
+          print(f"tag: {tag}, setup.py: {setup_version}, ueq.__version__: {init_version}")
+
+          if tag != f"v{setup_version}":
+              sys.exit(f"Tag {tag} does not match setup.py version {setup_version}; expected v{setup_version}.")
+          if init_version != setup_version:
+              sys.exit(f"ueq.__version__ ({init_version}) does not match setup.py ({setup_version}).")
+          PY
+      - name: Build sdist and wheel
+        run: |
+          pip install build twine
+          python -m build
+          twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/ueq/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish with trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
