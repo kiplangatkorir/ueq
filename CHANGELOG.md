@@ -69,6 +69,7 @@ Status labels used below:
 - `ConformalUQ(model, task_type="classification")` works again without naming a score: the default nonconformity score now follows the task (`residual` for regression, `inverse_probability` for classification). Between 1.0.1 and this release it raised `ValueError`.
 - The conformal rank `ceil((1 - alpha)(n + 1))` is computed with a tolerance for floating-point error, so a calibration set of exactly the minimum size (for example n = 9 at alpha = 0.1) keeps a finite quantile.
 - Synthetic generators use `np.random.default_rng` and no longer reseed the global NumPy RNG; `shift="covariate"` shifts X before y is generated. `make_synthetic_regression()` now returns the noise type in `meta["noise_type"]`; it returned the noise array.
+- `UQ(NetClass)` with an `nn.Module` subclass (not an instance) is treated as a constructor and gets deep ensembles; it was detected as a model instance and crashed, which also broke cross-framework ensembles given a network class.
 - Removed unused torch imports from `ueq/core.py` and `ueq/methods/cross_ensemble.py`; `print()` and bare `except:` removed from library code.
 - `plot_calibration_curve()` was incomplete in 1.0.1: `ueq/utils/visualization.py` stopped mid-function at line 75, and the curve shrank widths by `1 - q` instead of scaling them by `q` (PR #28; see the caveat under `plot_reliability_diagram()` above).
 

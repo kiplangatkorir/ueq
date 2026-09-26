@@ -63,6 +63,10 @@ class UQ:
             else:
                 return "sklearn_regressor"
         
+        # A class (e.g. an nn.Module subclass) is a constructor, not a model instance
+        if isinstance(model, type):
+            return "constructor"
+
         # Check for PyTorch models
         if hasattr(model, 'forward') and hasattr(model, 'parameters'):
             return "pytorch"

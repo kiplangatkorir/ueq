@@ -127,3 +127,20 @@ def test_drift_aware_recalibration_changes_the_quantile():
 
     assert recal.total_recalibrations > 0
     assert recal.uq_method.q != twin.q
+
+
+def test_network_class_is_treated_as_a_constructor():
+    import torch.nn as nn
+
+    class Net(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.fc = nn.Linear(3, 1)
+
+        def forward(self, x):
+            return self.fc(x)
+
+    uq = UQ(Net)
+    assert uq.model_type == "constructor"
+    assert uq.method == "deep_ensemble"
+    assert UQ(Net()).model_type == "pytorch"
