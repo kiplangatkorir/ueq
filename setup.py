@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="ueq",
     version="1.0.2",
-    description="Uncertainty Everywhere (UEQ) - Phoenix Edition: A unified Python library for Uncertainty Quantification with production-ready features",
+    description="Uncertainty quantification for ML models: split conformal prediction intervals and sets, coverage metrics and diagnostics",
     author="Kiplangat Korir",
     author_email="korirkiplangat22@gmail.com",
     packages=find_packages(),
@@ -36,7 +36,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
-    keywords="uncertainty-quantification,machine-learning,deep-learning,bootstrap,conformal-prediction,mc-dropout,production,monitoring,auto-detection,cross-framework,phoenix",
+    keywords="uncertainty-quantification,machine-learning,deep-learning,bootstrap,conformal-prediction,mc-dropout,monitoring",
     project_urls={
         "Source": "https://github.com/kiplangatkorir/ueq",
         "Bug Reports": "https://github.com/kiplangatkorir/ueq/issues",

@@ -1,0 +1,12 @@
+# Code owners are requested for review automatically. With branch protection
+# set to "Require review from Code Owners" on main, their approval is needed
+# to merge.
+
+# Default owner for everything in the repository.
+*                       @kiplangatkorir
+
+# Statistical code. Changes here need a repeated-trial coverage test and
+# maintainer sign-off; see "Statistical review gate" in CONTRIBUTING.md.
+/ueq/methods/           @kiplangatkorir
+/ueq/utils/metrics.py   @kiplangatkorir
+/ueq/diagnostics.py     @kiplangatkorir
