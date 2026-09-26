@@ -1,3 +1,5 @@
+> Archived. This file is kept for history and does not describe the current state of UEQ. For the status of each feature, see [CHANGELOG.md](../../CHANGELOG.md).
+
 # 🔥 UEQ v1.0.1 Phoenix - "Rising from Research to Production" 🔥
 
 ## The Phoenix Rises! 🚀
@@ -208,10 +210,10 @@ print(f"Drift score: {results['monitoring']['drift_score']:.3f}")
 
 Phoenix comes with comprehensive documentation:
 
-- **[API Documentation](docs/API.md)**: Complete API reference
-- **[Tutorial Guide](docs/TUTORIAL.md)**: Step-by-step learning
-- **[Production Guide](docs/PRODUCTION_GUIDE.md)**: Enterprise deployment
-- **[Examples](docs/EXAMPLES.md)**: Real-world use cases
+- **[API Documentation](../API.md)**: Complete API reference
+- **[Tutorial Guide](../TUTORIAL.md)**: Step-by-step learning
+- **[Production Guide](../PRODUCTION_GUIDE.md)**: Enterprise deployment
+- **[Examples](../EXAMPLES.md)**: Real-world use cases
 
 ## 🤝 Community
 
@@ -254,7 +256,7 @@ pip install ueq
 
 If you encounter any problems:
 
-1. **Check the [documentation](docs/)** for comprehensive guides and examples
+1. **Check the [documentation](../)** for comprehensive guides and examples
 2. **Search existing [issues](https://github.com/kiplangatkorir/ueq/issues)** to see if your problem is already reported
 3. **Create a new issue** with:
    - Clear description of the problem

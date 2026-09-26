@@ -65,8 +65,10 @@ Status labels used below:
 - `UQ(classifier)` now detects classifiers with `sklearn.base.is_classifier` and uses conformal classification (LAC / `inverse_probability`); classifiers without `predict_proba` (e.g. default `SVC()`, `RidgeClassifier`) raise a clear `ValueError`.
 - Conformal classification maps labels through the model's `classes_`, so string labels and labels like {-1, +1} or {1, 2, 3} work; prediction sets contain class labels, not column indices.
 - Split conformal returns infinite bounds (regression) or the full label set (classification) when the calibration set is too small for the requested alpha, with a warning, instead of silently clamping to the largest score. Same for `OnlineConformalUQ` until its buffer is large enough.
-- `ConformalUQ` raises on multi-output y.
-- Synthetic generators use `np.random.default_rng` and no longer reseed the global NumPy RNG; `shift="covariate"` shifts X before y is generated.
+- `ConformalUQ` raises on multi-output y, and accepts an `(n, 1)` column-vector target.
+- `ConformalUQ(model, task_type="classification")` works again without naming a score: the default nonconformity score now follows the task (`residual` for regression, `inverse_probability` for classification). Between 1.0.1 and this release it raised `ValueError`.
+- The conformal rank `ceil((1 - alpha)(n + 1))` is computed with a tolerance for floating-point error, so a calibration set of exactly the minimum size (for example n = 9 at alpha = 0.1) keeps a finite quantile.
+- Synthetic generators use `np.random.default_rng` and no longer reseed the global NumPy RNG; `shift="covariate"` shifts X before y is generated. `make_synthetic_regression()` now returns the noise type in `meta["noise_type"]`; it returned the noise array.
 - Removed unused torch imports from `ueq/core.py` and `ueq/methods/cross_ensemble.py`; `print()` and bare `except:` removed from library code.
 - `plot_calibration_curve()` was incomplete in 1.0.1: `ueq/utils/visualization.py` stopped mid-function at line 75, and the curve shrank widths by `1 - q` instead of scaling them by `q` (PR #28; see the caveat under `plot_reliability_diagram()` above).
 

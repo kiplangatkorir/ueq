@@ -1,5 +1,7 @@
 # UEQ Production Deployment Guide
 
+> **Experimental.** The monitoring and recalibration APIs this guide relies on are marked experimental in UEQ 1.0.2 and will be replaced in 1.2.0 by coverage monitoring with delayed labels. `UQMonitor` emits `ueq.ExperimentalWarning`: it ignores the baseline passed to its constructor, so its drift score stays at 0.0, and it never sees the true outcomes. The performance utilities used here (`BatchProcessor`, `PerformanceProfiler`, `optimize_batch_size`) are due to be deprecated in 1.1.0. The service code also relies on `UQ(model)` defaults, and for regressors the default bootstrap intervals are not prediction intervals. None of these patterns has been validated. See Known issues in [CHANGELOG.md](../CHANGELOG.md) and the plan in [ROADMAP.md](ROADMAP.md).
+
 ## Table of Contents
 
 1. [Production Architecture](#production-architecture)

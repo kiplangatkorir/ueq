@@ -88,7 +88,7 @@ Pass `method=` to choose explicitly.
 
 ## Experimental modules
 
-`UQMonitor`, `UQ.monitor`, `AdaptiveConformalUQ`, `DriftAwareRecalibrator`, `UncertaintyInflator` and `CrossFrameworkEnsembleUQ` emit `ueq.ExperimentalWarning`. Their output is not validated: for example, the monitor's drift score is always 0.0, and `AdaptiveConformalUQ` and `DriftAwareRecalibrator` never change the calibrated quantile. Do not rely on them.
+`UQMonitor`, `UQ.monitor`, `AdaptiveConformalUQ`, `DriftAwareRecalibrator`, `UncertaintyInflator` and `CrossFrameworkEnsembleUQ` emit `ueq.ExperimentalWarning`. Their output is not validated: for example, `UQMonitor` ignores the baseline passed to its constructor, so its drift score stays at 0.0, and `AdaptiveConformalUQ` and `DriftAwareRecalibrator` never change the calibrated quantile. Do not rely on them.
 
 ## Roadmap
 
